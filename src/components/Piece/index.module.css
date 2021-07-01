@@ -1,0 +1,54 @@
+.piece {
+  width: 100%;
+  height: 100%;
+  background-size: contain;
+  cursor: grab;
+}
+
+.bp {
+  background-image: url(/src/assets/images/chess-pieces/default/bp.png);
+}
+
+.bb {
+  background-image: url(/src/assets/images/chess-pieces/default/bb.png);
+}
+
+.bn {
+  background-image: url(/src/assets/images/chess-pieces/default/bn.png);
+}
+
+.br {
+  background-image: url(/src/assets/images/chess-pieces/default/br.png);
+}
+
+.bq {
+  background-image: url(/src/assets/images/chess-pieces/default/bq.png);
+}
+
+.bk {
+  background-image: url(/src/assets/images/chess-pieces/default/bk.png);
+}
+
+.wp {
+  background-image: url(/src/assets/images/chess-pieces/default/wp.png);
+}
+
+.wb {
+  background-image: url(/src/assets/images/chess-pieces/default/wb.png);
+}
+
+.wn {
+  background-image: url(/src/assets/images/chess-pieces/default/wn.png);
+}
+
+.wr {
+  background-image: url(/src/assets/images/chess-pieces/default/wr.png);
+}
+
+.wq {
+  background-image: url(/src/assets/images/chess-pieces/default/wq.png);
+}
+
+.wk {
+  background-image: url(/src/assets/images/chess-pieces/default/wk.png);
+}

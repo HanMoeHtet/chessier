@@ -6,6 +6,10 @@ import { Provider } from 'react-redux';
 import * as serviceWorker from './serviceWorker';
 import './index.css';
 
+if (process.env.NODE_ENV !== 'production') {
+  import('src/debug');
+}
+
 ReactDOM.render(
   <React.StrictMode>
     <Provider store={store}>

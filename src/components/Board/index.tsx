@@ -1,32 +1,33 @@
 import React from 'react';
 import { useAppSelector } from 'src/store/hooks';
-import { BOARD_SIZE } from 'src/utils/constants';
-import Square from '../Square';
+import { getSquarePosition } from 'src/utils/helpers';
+import Hint from '../Hint';
+import Piece from 'src/components/Piece';
 import styles from './index.module.css';
+import PromotionModalBox from '../PromotionModalBox';
 
 const Board: React.FC = () => {
-  const board = useAppSelector((state) => state.gameStore.board);
+  const pieces = useAppSelector((state) => state.gameStore.pieces);
+  const hints = useAppSelector((state) => state.gameStore.hints);
 
-  const renderSquares = (): JSX.Element[][] => {
-    return board.map((row, rowIndex) => {
-      return row.map((square, colIndex) => {
-        const id = colIndex * BOARD_SIZE + rowIndex;
-        const pieceProp = square ? { piece: square } : {};
-        return (
-          <Square
-            pos={{ row: rowIndex, col: colIndex }}
-            key={id}
-            id={id}
-            {...pieceProp}
-          />
-        );
-      });
+  const renderPieces = (): JSX.Element[] => {
+    return pieces.map((piece) => {
+      return <Piece key={piece.id} {...piece} />;
+    });
+  };
+
+  const renderHints = (): JSX.Element[] => {
+    return hints.map((hint) => {
+      const [row, col] = getSquarePosition(hint.to);
+      return <Hint key={hint.san} move={hint} pos={{ row, col }} />;
     });
   };
 
   return (
     <div className={`${styles.board} w-full h-full bg-cover`}>
-      {renderSquares()}
+      {renderPieces()}
+      {renderHints()}
+      <PromotionModalBox />
     </div>
   );
 };

@@ -1,0 +1,23 @@
+.hint {
+  position: absolute;
+  width: 80px;
+  height: 80px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.move {
+  width: 40%;
+  height: 40%;
+  border-radius: 50%;
+  background-color: rgba(0, 0, 0, 0.1);
+}
+
+.capture {
+  width: 80%;
+  height: 80%;
+  border-radius: 50%;
+  border: 8px solid rgba(0, 0, 0, 0.2);
+  z-index: 2;
+}

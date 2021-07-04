@@ -13,6 +13,7 @@ const Piece: React.FC<Props> = ({ type, color, id, pos }) => {
   const focusedPieceId = useAppSelector(
     (state) => state.gameStore.focusedPieceId
   );
+  const perspective = useAppSelector((state) => state.gameStore.perspective);
 
   const dispatch = useAppDispatch();
 
@@ -35,7 +36,7 @@ const Piece: React.FC<Props> = ({ type, color, id, pos }) => {
       style={{
         transform: `translate(${pos.col * SQUARE_WIDTH}px, ${
           pos.row * SQUARE_WIDTH
-        }px)`,
+        }px) ${perspective === 'w' ? '' : 'rotateZ(180deg)'}`,
       }}
       onClick={handleClick}
     ></div>

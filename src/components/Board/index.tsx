@@ -9,6 +9,7 @@ import PromotionModalBox from '../PromotionModalBox';
 const Board: React.FC = () => {
   const pieces = useAppSelector((state) => state.gameStore.pieces);
   const hints = useAppSelector((state) => state.gameStore.hints);
+  const perspective = useAppSelector((state) => state.gameStore.perspective);
 
   const renderPieces = (): JSX.Element[] => {
     return pieces.map((piece) => {
@@ -24,7 +25,10 @@ const Board: React.FC = () => {
   };
 
   return (
-    <div className={`${styles.board} w-full h-full bg-cover`}>
+    <div
+      className={`${styles.board} w-full h-full bg-cover`}
+      style={perspective === 'w' ? {} : { transform: `rotateZ(180deg)` }}
+    >
       {renderPieces()}
       {renderHints()}
       <PromotionModalBox />

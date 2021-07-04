@@ -7,6 +7,11 @@
   z-index: 10;
 }
 
+.bottom {
+  bottom: 0;
+  top: auto;
+}
+
 .piece {
   width: 80px;
   height: 80px;

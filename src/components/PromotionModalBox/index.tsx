@@ -9,6 +9,7 @@ import { PieceSymbol } from 'chess.ts';
 const PromotionModalBox: React.FC = () => {
   const turn = useAppSelector((state) => state.gameStore.turn);
   const data = useAppSelector((state) => state.gameStore.promotionData);
+  const perspective = useAppSelector((state) => state.gameStore.perspective);
 
   const dispatch = useAppDispatch();
 
@@ -24,10 +25,18 @@ const PromotionModalBox: React.FC = () => {
     dispatch(setPromotionData(null));
   };
 
+  console.log(perspective, turn);
+
   return (
     <div
-      className={styles.promotionModalBox}
-      style={{ transform: `translateX(${pos.col * SQUARE_WIDTH}px)` }}
+      className={`${styles.promotionModalBox} ${
+        turn === 'w' ? '' : styles.bottom
+      }`}
+      style={{
+        transform: `translateX(${pos.col * SQUARE_WIDTH}px) ${
+          perspective === 'w' ? '' : 'rotateZ(180deg)'
+        }`,
+      }}
     >
       {['q', 'n', 'r', 'b'].map((pieceName) => (
         <div

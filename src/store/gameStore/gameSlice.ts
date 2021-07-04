@@ -15,6 +15,7 @@ export interface GameState {
   hints: Move[];
   turn: string;
   promotionData: null | PromotionData;
+  perspective: 'w' | 'b';
 }
 
 const initialState: GameState = {
@@ -23,6 +24,7 @@ const initialState: GameState = {
   hints: [],
   turn: game.turn(),
   promotionData: null,
+  perspective: 'w',
 };
 
 export const gameSlice = createSlice({
@@ -44,6 +46,9 @@ export const gameSlice = createSlice({
     setPromotionData(state, action: PayloadAction<null | PromotionData>) {
       state.promotionData = action.payload;
     },
+    setPerspective(state, action: PayloadAction<'w' | 'b'>) {
+      state.perspective = action.payload;
+    },
   },
 });
 
@@ -53,6 +58,7 @@ export const {
   setPieces,
   setTurn,
   setPromotionData,
+  setPerspective,
 } = gameSlice.actions;
 
 export const focus =
@@ -285,5 +291,11 @@ export const promote =
       dispatch(setPieces(pieces));
     }, 200);
   };
+
+export const togglePerspective = (): AppThunk => (dispatch, getState) => {
+  dispatch(
+    setPerspective(getState().gameStore.perspective === 'w' ? 'b' : 'w')
+  );
+};
 
 export default gameSlice.reducer;

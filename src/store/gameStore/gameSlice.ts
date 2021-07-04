@@ -8,6 +8,7 @@ import {
   getSquarePosition,
 } from 'src/utils/helpers';
 import { AppThunk } from '..';
+import { addToHistory } from '../historyStore/historySlice';
 
 export interface GameState {
   focusedPieceId: number | null;
@@ -100,6 +101,7 @@ export const move =
       }
     });
     dispatch(setPieces(pieces));
+    dispatch(addToHistory(pieces));
     game.move(move);
     dispatch(setTurn(game.turn()));
   };
@@ -128,9 +130,10 @@ export const capture =
         );
       });
       dispatch(setPieces(pieces));
+      dispatch(addToHistory(pieces));
+      game.move(move);
+      dispatch(setTurn(game.turn()));
     }, 200);
-    game.move(move);
-    dispatch(setTurn(game.turn()));
   };
 
 export const enPassant =
@@ -162,9 +165,10 @@ export const enPassant =
         );
       });
       dispatch(setPieces(pieces));
+      dispatch(addToHistory(pieces));
+      game.move(move);
+      dispatch(setTurn(game.turn()));
     }, 200);
-    game.move(move);
-    dispatch(setTurn(game.turn()));
   };
 
 export const kingSideCastle =
@@ -200,6 +204,7 @@ export const kingSideCastle =
       }
     });
     dispatch(setPieces(pieces));
+    dispatch(addToHistory(pieces));
     game.move(move);
     dispatch(setTurn(game.turn()));
   };
@@ -237,6 +242,7 @@ export const queenSideCastle =
       }
     });
     dispatch(setPieces(pieces));
+    dispatch(addToHistory(pieces));
     game.move(move);
     dispatch(setTurn(game.turn()));
   };
@@ -289,6 +295,7 @@ export const promote =
           return piece;
         });
       dispatch(setPieces(pieces));
+      dispatch(addToHistory(pieces));
     }, 200);
   };
 

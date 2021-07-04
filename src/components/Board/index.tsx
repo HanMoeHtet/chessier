@@ -1,15 +1,31 @@
-import React from 'react';
-import { useAppSelector } from 'src/store/hooks';
+import React, { useEffect } from 'react';
+import { useAppDispatch, useAppSelector } from 'src/store/hooks';
 import { getSquarePosition } from 'src/utils/helpers';
 import Hint from '../Hint';
 import Piece from 'src/components/Piece';
 import styles from './index.module.css';
 import PromotionModalBox from '../PromotionModalBox';
+import { back } from 'src/store/historyStore/historySlice';
 
 const Board: React.FC = () => {
   const pieces = useAppSelector((state) => state.gameStore.pieces);
   const hints = useAppSelector((state) => state.gameStore.hints);
   const perspective = useAppSelector((state) => state.gameStore.perspective);
+
+  const dispatch = useAppDispatch();
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'z' && e.ctrlKey) {
+        dispatch(back());
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, []);
 
   const renderPieces = (): JSX.Element[] => {
     return pieces.map((piece) => {

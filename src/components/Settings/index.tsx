@@ -3,7 +3,7 @@ import Divider from '../utils/Divider';
 import FlipIcon from 'src/components/utils/FlipIcon';
 import BackIcon from 'src/components/utils/BackIcon';
 import NextIcon from '../utils/NextIcon';
-import { useSettings } from 'src/hooks/useSettings';
+import { useSettings } from 'src/composables/useSettings';
 
 const Settings: React.FC = () => {
   const { flip, back, next } = useSettings();

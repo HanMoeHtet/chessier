@@ -1,5 +1,6 @@
 import { Move } from 'chess.ts';
 import React from 'react';
+import { useAudioPlayer } from 'src/composables/useAudioPlayer';
 import {
   capture,
   enPassant,
@@ -18,26 +19,37 @@ interface Props {
 }
 
 const Hint: React.FC<Props> = ({ pos, move }) => {
+  const player = useAudioPlayer();
+
   const dispatch = useAppDispatch();
+
   const handleClick = () => {
     switch (move.flags) {
       case 'e':
+        player.capture();
         dispatch(enPassant(pos, move));
         break;
       case 'c':
+        player.capture();
         dispatch(capture(pos, move));
         break;
       case 'cp':
+        player.capture();
+        dispatch(showPromotionModalBox(pos, move));
+        break;
       case 'np':
         dispatch(showPromotionModalBox(pos, move));
         break;
       case 'k':
+        player.castle();
         dispatch(kingSideCastle(pos, move));
         break;
       case 'q':
+        player.castle();
         dispatch(queenSideCastle(pos, move));
         break;
       default:
+        player.moveSelf();
         dispatch(gameMove(pos, move));
         break;
     }

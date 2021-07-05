@@ -25,7 +25,7 @@ const Board: React.FC = () => {
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
     };
-  }, []);
+  }, [dispatch]);
 
   const renderPieces = (): JSX.Element[] => {
     return pieces.map((piece) => {

@@ -101,7 +101,7 @@ export const move =
       }
     });
     dispatch(setPieces(pieces));
-    dispatch(addToHistory(pieces));
+    dispatch(addToHistory(pieces, move));
     game.move(move);
     dispatch(setTurn(game.turn()));
   };
@@ -130,7 +130,7 @@ export const capture =
         );
       });
       dispatch(setPieces(pieces));
-      dispatch(addToHistory(pieces));
+      dispatch(addToHistory(pieces, move));
       game.move(move);
       dispatch(setTurn(game.turn()));
     }, 200);
@@ -165,7 +165,7 @@ export const enPassant =
         );
       });
       dispatch(setPieces(pieces));
-      dispatch(addToHistory(pieces));
+      dispatch(addToHistory(pieces, move));
       game.move(move);
       dispatch(setTurn(game.turn()));
     }, 200);
@@ -204,7 +204,7 @@ export const kingSideCastle =
       }
     });
     dispatch(setPieces(pieces));
-    dispatch(addToHistory(pieces));
+    dispatch(addToHistory(pieces, move));
     game.move(move);
     dispatch(setTurn(game.turn()));
   };
@@ -242,7 +242,7 @@ export const queenSideCastle =
       }
     });
     dispatch(setPieces(pieces));
-    dispatch(addToHistory(pieces));
+    dispatch(addToHistory(pieces, move));
     game.move(move);
     dispatch(setTurn(game.turn()));
   };
@@ -295,7 +295,7 @@ export const promote =
           return piece;
         });
       dispatch(setPieces(pieces));
-      dispatch(addToHistory(pieces));
+      dispatch(addToHistory(pieces, move));
     }, 200);
   };
 

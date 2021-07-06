@@ -1,0 +1,4 @@
+.animate {
+  will-change: transfrom;
+  transition: transform 0.3s ease;
+}

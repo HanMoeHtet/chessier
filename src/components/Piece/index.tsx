@@ -1,18 +1,17 @@
-import React, { useRef } from 'react';
 import { cancel, focus } from 'src/store/gameStore/gameSlice';
 import { useAppDispatch, useAppSelector } from 'src/store/hooks';
 import { Piece as PieceType } from 'src/types';
 import { SQUARE_WIDTH } from 'src/utils/constants';
 import styles from './index.module.css';
 
-interface Props extends PieceType {}
+interface Props extends PieceType {
+  setRef: (current: HTMLDivElement | null) => void;
+}
 
 /**
  * FIXME: Play animation only when intended
  */
-const Piece: React.FC<Props> = ({ type, color, id, pos }) => {
-  const elRef = useRef<HTMLDivElement>(null);
-
+const Piece: React.FC<Props> = ({ type, color, id, pos, setRef }) => {
   const focusedPieceId = useAppSelector(
     (state) => state.gameStore.focusedPieceId
   );
@@ -31,7 +30,7 @@ const Piece: React.FC<Props> = ({ type, color, id, pos }) => {
 
   return (
     <div
-      ref={elRef}
+      ref={setRef}
       className={`${styles.piece} ${styles[color + type]}`}
       style={{
         transform: `translate(${pos.col * SQUARE_WIDTH}px, ${

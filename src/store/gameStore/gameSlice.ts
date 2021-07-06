@@ -114,9 +114,9 @@ export const cancel = (): AppThunk => (dispatch) => {
 export const move =
   (pos: Position, move: Move): AppThunk =>
   async (dispatch, getState) => {
-    const { focusedPieceId } = getState().gameStore;
+    const { focusedPieceId, pieces } = getState().gameStore;
     dispatch(cancel());
-    let pieces = getState().gameStore.pieces.map((piece) => {
+    let _pieces = pieces.map((piece) => {
       if (piece.id === focusedPieceId) {
         return {
           ...piece,
@@ -126,8 +126,8 @@ export const move =
         return piece;
       }
     });
-    dispatch(setPieces(pieces));
-    dispatch(addToHistory(pieces, move));
+    dispatch(setPieces(_pieces));
+    dispatch(addToHistory(_pieces, move));
     game.move(move);
     dispatch(setTurn(game.turn()));
   };

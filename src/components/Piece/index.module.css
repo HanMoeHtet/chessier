@@ -6,8 +6,6 @@
   height: 80px;
   background-size: contain;
   cursor: grab;
-  transition: transform 0.3s ease;
-  will-change: transform;
   z-index: 1;
 }
 

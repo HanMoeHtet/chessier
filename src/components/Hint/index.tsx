@@ -1,5 +1,6 @@
 import { Move } from 'chess.ts';
 import React from 'react';
+import { useAnimation } from 'src/composables/useAnimation';
 import { useAudioPlayer } from 'src/composables/useAudioPlayer';
 import {
   capture,
@@ -16,10 +17,12 @@ import styles from './index.module.css';
 interface Props {
   pos: { row: number; col: number };
   move: Move;
+  els: (HTMLElement | null | undefined)[];
 }
 
-const Hint: React.FC<Props> = ({ pos, move }) => {
+const Hint: React.FC<Props> = ({ pos, move, els }) => {
   const player = useAudioPlayer();
+  const animation = useAnimation();
 
   const dispatch = useAppDispatch();
 
@@ -27,6 +30,9 @@ const Hint: React.FC<Props> = ({ pos, move }) => {
    * TODO: Modify move process (animation and stuff)
    */
   const handleClick = () => {
+    els.forEach((el) => {
+      if (el) animation.animate(el);
+    });
     switch (move.flags) {
       case 'e':
         player.capture();

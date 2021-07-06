@@ -1,0 +1,23 @@
+.highlight {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 80px;
+  height: 80px;
+}
+
+.light.blue {
+  background-color: #76c7e9;
+}
+
+.dark.blue {
+  background-color: #268ccc;
+}
+
+.light.red {
+  background-color: #eb7b6a;
+}
+
+.dark.red {
+  background-color: #cb645e;
+}

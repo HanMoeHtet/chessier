@@ -8,14 +8,7 @@
   cursor: grab;
   transition: transform 0.3s ease;
   will-change: transform;
-}
-
-.light.focused {
-  background-color: #76c7e9;
-}
-
-.dark.focused {
-  background-color: #268ccc;
+  z-index: 1;
 }
 
 .bp {

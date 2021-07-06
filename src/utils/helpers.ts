@@ -1,7 +1,6 @@
-import { Chess, Piece as BasePiece } from 'chess.ts';
 import game from 'src/services/game.service';
 import { Piece, Position } from 'src/types';
-import { BOARD_SIZE } from './constants';
+import { BOARD_SIZE, SQUARE_WIDTH } from './constants';
 
 type GenerateSquareNameFunction = (param: Position) => string;
 
@@ -36,4 +35,20 @@ export const getInitialPieces = (): Piece[] => {
     });
   });
   return pieces;
+};
+
+interface PositionOnBoard {
+  x: number;
+  y: number;
+}
+
+export const getSquarePosOnBoard = (
+  boardPos: PositionOnBoard,
+  mousePos: PositionOnBoard
+): Position => {
+  let row, col;
+  col = Math.floor((mousePos.x - boardPos.x) / SQUARE_WIDTH);
+  row = Math.floor((mousePos.y - boardPos.y) / SQUARE_WIDTH);
+
+  return { row, col };
 };

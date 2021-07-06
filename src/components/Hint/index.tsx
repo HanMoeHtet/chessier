@@ -23,6 +23,9 @@ const Hint: React.FC<Props> = ({ pos, move }) => {
 
   const dispatch = useAppDispatch();
 
+  /**
+   * TODO: Modify move process (animation and stuff)
+   */
   const handleClick = () => {
     switch (move.flags) {
       case 'e':

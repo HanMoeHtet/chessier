@@ -20,7 +20,8 @@ const Piece: React.FC<Props> = ({ type, color, id, pos }) => {
 
   const dispatch = useAppDispatch();
 
-  const handleClick = () => {
+  const onPieceClicked: React.MouseEventHandler<HTMLDivElement> = (e) => {
+    e.preventDefault();
     if (focusedPieceId === id) {
       dispatch(cancel());
     } else {
@@ -28,20 +29,16 @@ const Piece: React.FC<Props> = ({ type, color, id, pos }) => {
     }
   };
 
-  const isLightSquare = pos.col % 2 === pos.row % 2;
-
   return (
     <div
       ref={elRef}
-      className={`${styles.piece} ${styles[color + type]}
-        ${isLightSquare ? styles.light : styles.dark}
-        ${focusedPieceId === id ? styles.focused : ''}`}
+      className={`${styles.piece} ${styles[color + type]}`}
       style={{
         transform: `translate(${pos.col * SQUARE_WIDTH}px, ${
           pos.row * SQUARE_WIDTH
         }px) ${perspective === 'w' ? '' : 'rotateZ(180deg)'}`,
       }}
-      onClick={handleClick}
+      onClick={onPieceClicked}
     ></div>
   );
 };

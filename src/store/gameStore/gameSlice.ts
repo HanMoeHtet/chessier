@@ -1,7 +1,7 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { Move, PieceSymbol } from 'chess.ts';
 import game from 'src/services/game.service';
-import { Piece, Position, PromotionData } from 'src/types';
+import { Color, Highlight, Piece, Position, PromotionData } from 'src/types';
 import {
   generateSquareName,
   getInitialPieces,
@@ -15,6 +15,7 @@ export interface GameState {
   pieces: Piece[];
   hints: Move[];
   turn: string;
+  highlights: Highlight[];
   promotionData: null | PromotionData;
   perspective: 'w' | 'b';
 }
@@ -23,6 +24,7 @@ const initialState: GameState = {
   pieces: getInitialPieces(),
   focusedPieceId: null,
   hints: [],
+  highlights: [],
   turn: game.turn(),
   promotionData: null,
   perspective: 'w',
@@ -37,6 +39,9 @@ export const gameSlice = createSlice({
     },
     setHints(state, action: PayloadAction<Move[]>) {
       state.hints = action.payload;
+    },
+    setHighlights(state, action: PayloadAction<Highlight[]>) {
+      state.highlights = action.payload;
     },
     setPieces(state, action: PayloadAction<Piece[]>) {
       state.pieces = action.payload;
@@ -56,6 +61,7 @@ export const gameSlice = createSlice({
 export const {
   setFocusedPieceId,
   setHints,
+  setHighlights,
   setPieces,
   setTurn,
   setPromotionData,
@@ -66,6 +72,7 @@ export const focus =
   (pieceId: number, pos: Position): AppThunk =>
   async (dispatch) => {
     dispatch(setFocusedPieceId(pieceId));
+    dispatch(setHighlights([{ pos, color: 'blue' }]));
     const hints = game
       .moves({
         square: generateSquareName(pos),
@@ -78,6 +85,25 @@ export const focus =
         return prev;
       }, []);
     dispatch(setHints(hints));
+  };
+
+export const mark =
+  (color: Color = 'red', pos: Position): AppThunk =>
+  (dispatch, getState) => {
+    const { highlights, focusedPieceId } = getState().gameStore;
+    let _highlights;
+    if (focusedPieceId) {
+      dispatch(cancel());
+      dispatch(setHighlights([{ color, pos }]));
+    } else {
+      _highlights = highlights
+        .filter(
+          (highlight) =>
+            generateSquareName(highlight.pos) !== generateSquareName(pos)
+        )
+        .concat({ color, pos });
+      dispatch(setHighlights(_highlights));
+    }
   };
 
 export const cancel = (): AppThunk => (dispatch) => {

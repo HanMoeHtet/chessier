@@ -14,3 +14,10 @@ export interface PromotionData {
   pos: Position;
   move: Move;
 }
+
+export type Color = 'red' | 'blue';
+
+export interface Highlight {
+  pos: Position;
+  color: Color;
+}

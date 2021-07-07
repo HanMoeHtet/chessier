@@ -12,56 +12,38 @@ import {
   showPromotionModalBox,
 } from 'src/store/gameStore/gameSlice';
 import { useAppDispatch } from 'src/store/hooks';
+import { Hint as HintType } from 'src/types';
 import { SQUARE_WIDTH } from 'src/utils/constants';
+import { getSquarePosition } from 'src/utils/helpers';
 import styles from './index.module.css';
 
-interface Props {
-  pos: { row: number; col: number };
-  move: Move;
-  pieceIds: number[];
-}
+interface Props extends HintType {}
 
-const Hint: React.FC<Props> = ({ pos, move, pieceIds }) => {
+const Hint: React.FC<Props> = ({ move, pieceIds }) => {
+  const pos = getSquarePosition(move.to);
+
   const dispatch = useAppDispatch();
 
-  /**
-   * TODO: Modify move process (animation and stuff)
-   */
   const handleClick = () => {
-    game.move(move);
-    dispatch(setAnimatingPieceIds(pieceIds));
     switch (move.flags) {
       case 'e':
-        dispatch(
-          setPlayingAudios(game.inCheck() ? ['moveCheck'] : ['capture'])
-        );
-        dispatch(enPassant(pos, move));
+        dispatch(enPassant(pieceIds, move));
         break;
       case 'c':
-        dispatch(
-          setPlayingAudios(game.inCheck() ? ['moveCheck'] : ['capture'])
-        );
-        dispatch(capture(pos, move));
+        dispatch(capture(pieceIds, move));
         break;
       case 'cp':
-        dispatch(showPromotionModalBox(pos, move));
-        break;
       case 'np':
-        dispatch(showPromotionModalBox(pos, move));
+        dispatch(showPromotionModalBox(pieceIds, move));
         break;
       case 'k':
-        dispatch(setPlayingAudios(game.inCheck() ? ['moveCheck'] : ['castle']));
-        dispatch(kingSideCastle(pos, move));
+        dispatch(kingSideCastle(pieceIds, move));
         break;
       case 'q':
-        dispatch(setPlayingAudios(game.inCheck() ? ['moveCheck'] : ['castle']));
-        dispatch(queenSideCastle(pos, move));
+        dispatch(queenSideCastle(pieceIds, move));
         break;
       default:
-        dispatch(
-          setPlayingAudios(game.inCheck() ? ['moveCheck'] : ['moveSelf'])
-        );
-        dispatch(gameMove(pos, move));
+        dispatch(gameMove(pieceIds, move));
         break;
     }
   };

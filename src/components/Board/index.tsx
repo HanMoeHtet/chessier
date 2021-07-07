@@ -15,8 +15,6 @@ import { mark, move } from 'src/store/gameStore/gameSlice';
 import AudioPlayer from '../AudioPlayer';
 
 const Board: React.FC = () => {
-  const turn = useAppSelector((state) => state.gameStore.turn);
-
   const { pieces, perspective, highlights, hints, focusedPieceId } =
     useAppSelector((state) => state.gameStore);
 
@@ -43,8 +41,7 @@ const Board: React.FC = () => {
 
   const renderHints = (): JSX.Element[] => {
     return hints.map((hint) => {
-      const [row, col] = getSquarePosition(hint.move.to);
-      return <Hint key={hint.move.san} {...hint} pos={{ row, col }} />;
+      return <Hint key={hint.move.san} {...hint} />;
     });
   };
 

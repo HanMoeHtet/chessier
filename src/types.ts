@@ -1,4 +1,5 @@
 import { Move, Piece as ChessPiece } from 'chess.ts';
+import Hint from './components/Hint';
 
 export interface Position {
   row: number;
@@ -10,10 +11,7 @@ export interface Piece extends ChessPiece {
   pos: Position;
 }
 
-export interface PromotionData {
-  pos: Position;
-  move: Move;
-}
+export interface PromotionData extends Hint {}
 
 export type Color = 'red' | 'blue';
 

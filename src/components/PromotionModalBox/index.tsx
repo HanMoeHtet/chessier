@@ -10,6 +10,7 @@ import {
 } from 'src/store/gameStore/gameSlice';
 import { PieceSymbol } from 'chess.ts';
 import game from 'src/services/game.service';
+import { getSquarePosition } from 'src/utils/helpers';
 
 const PromotionModalBox: React.FC = () => {
   const turn = useAppSelector((state) => state.gameStore.turn);
@@ -20,12 +21,13 @@ const PromotionModalBox: React.FC = () => {
 
   if (!data) return null;
 
-  const { pos, move } = data;
+  const { pieceIds, move } = data;
+  const pos = getSquarePosition(move.to);
 
   const onPieceClicked = (pieceName: PieceSymbol) => {
     game.move(move);
     dispatch(setPlayingAudios(game.inCheck() ? ['moveCheck'] : ['promote']));
-    dispatch(promote(pos, move, pieceName));
+    dispatch(promote(pieceIds, move, pieceName));
   };
 
   const onCloseButtonClicked = () => {

@@ -13,10 +13,13 @@ export const generateSquareName: GenerateSquareNameFunction = ({
   return letter + number;
 };
 
-export const getSquarePosition = (name: string) => {
+export const getSquarePosition = (name: string): Position => {
   const letter = name[0];
   const number = Number(name[1]);
-  return [BOARD_SIZE - number, letter.charCodeAt(0) - 'a'.charCodeAt(0)];
+  return {
+    row: BOARD_SIZE - number,
+    col: letter.charCodeAt(0) - 'a'.charCodeAt(0),
+  };
 };
 
 export const getInitialPieces = (): Piece[] => {

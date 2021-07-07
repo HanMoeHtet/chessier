@@ -132,10 +132,13 @@ export const cancel = (): AppThunk => (dispatch) => {
 };
 
 export const move =
-  (pos: Position, move: Move): AppThunk =>
+  (pieceIds: number[], move: Move): AppThunk =>
   async (dispatch, getState) => {
+    game.move(move);
+    dispatch(setAnimatingPieceIds(pieceIds));
+    dispatch(setPlayingAudios(game.inCheck() ? ['moveCheck'] : ['moveSelf']));
     const { focusedPieceId, pieces } = getState().gameStore;
-    dispatch(cancel());
+    const pos = getSquarePosition(move.to);
     let _pieces = pieces.map((piece) => {
       if (piece.id === focusedPieceId) {
         return {
@@ -149,14 +152,18 @@ export const move =
     dispatch(setPieces(_pieces));
     dispatch(addToHistory(_pieces, move));
     dispatch(setTurn(game.turn()));
+    dispatch(cancel());
   };
 
 export const capture =
-  (pos: Position, move: Move): AppThunk =>
+  (pieceIds: number[], move: Move): AppThunk =>
   async (dispatch, getState) => {
-    const { focusedPieceId } = getState().gameStore;
-    dispatch(cancel());
-    let pieces = getState().gameStore.pieces.map((piece) => {
+    game.move(move);
+    dispatch(setAnimatingPieceIds(pieceIds));
+    dispatch(setPlayingAudios(game.inCheck() ? ['moveCheck'] : ['capture']));
+    const { focusedPieceId, pieces } = getState().gameStore;
+    const pos = getSquarePosition(move.to);
+    let _pieces = pieces.map((piece) => {
       if (piece.id === focusedPieceId) {
         return {
           ...piece,
@@ -166,26 +173,30 @@ export const capture =
         return piece;
       }
     });
-    dispatch(setPieces(pieces));
-    window.setTimeout(() => {
-      pieces = pieces.filter((piece) => {
+    dispatch(setPieces(_pieces));
+    dispatch(cancel());
+    setTimeout(() => {
+      _pieces = _pieces.filter((piece) => {
         return (
           generateSquareName(piece.pos) !== move.to ||
           piece.id === focusedPieceId
         );
       });
-      dispatch(setPieces(pieces));
-      dispatch(addToHistory(pieces, move));
+      dispatch(setPieces(_pieces));
+      dispatch(addToHistory(_pieces, move));
       dispatch(setTurn(game.turn()));
     }, 200);
   };
 
 export const enPassant =
-  (pos: Position, move: Move): AppThunk =>
+  (pieceIds: number[], move: Move): AppThunk =>
   async (dispatch, getState) => {
-    const { focusedPieceId } = getState().gameStore;
-    dispatch(cancel());
-    let pieces = getState().gameStore.pieces.map((piece) => {
+    game.move(move);
+    dispatch(setAnimatingPieceIds(pieceIds));
+    dispatch(setPlayingAudios(game.inCheck() ? ['moveCheck'] : ['capture']));
+    const { focusedPieceId, pieces } = getState().gameStore;
+    const pos = getSquarePosition(move.to);
+    let _pieces = pieces.map((piece) => {
       if (piece.id === focusedPieceId) {
         return {
           ...piece,
@@ -195,31 +206,33 @@ export const enPassant =
         return piece;
       }
     });
-    dispatch(setPieces(pieces));
-    window.setTimeout(() => {
-      pieces = pieces.filter((piece) => {
-        const [row, col] = getSquarePosition(move.to);
+    dispatch(setPieces(_pieces));
+    dispatch(cancel());
+    setTimeout(() => {
+      _pieces = _pieces.filter((piece) => {
         const targetPos = {
-          row: row + (game.turn() === 'w' ? -1 : 1),
-          col,
+          row: pos.row + (game.turn() === 'w' ? -1 : 1),
+          col: pos.col,
         };
         return (
           generateSquareName(piece.pos) !== generateSquareName(targetPos) ||
           piece.id === focusedPieceId
         );
       });
-      dispatch(setPieces(pieces));
-      dispatch(addToHistory(pieces, move));
-      game.move(move);
+      dispatch(setPieces(_pieces));
+      dispatch(addToHistory(_pieces, move));
       dispatch(setTurn(game.turn()));
     }, 200);
   };
 
 export const kingSideCastle =
-  (pos: Position, move: Move): AppThunk =>
+  (pieceIds: number[], move: Move): AppThunk =>
   async (dispatch, getState) => {
-    const { focusedPieceId } = getState().gameStore;
-    dispatch(cancel());
+    game.move(move);
+    dispatch(setAnimatingPieceIds(pieceIds));
+    dispatch(setPlayingAudios(game.inCheck() ? ['moveCheck'] : ['castle']));
+    const { focusedPieceId, pieces } = getState().gameStore;
+    const pos = getSquarePosition(move.to);
     const rookPos = {
       from: {
         row: game.turn() === 'w' ? 7 : 0,
@@ -230,7 +243,7 @@ export const kingSideCastle =
         col: 5,
       },
     };
-    let pieces = getState().gameStore.pieces.map((piece) => {
+    let _pieces = pieces.map((piece) => {
       if (piece.id === focusedPieceId) {
         return {
           ...piece,
@@ -247,17 +260,20 @@ export const kingSideCastle =
         return piece;
       }
     });
-    dispatch(setPieces(pieces));
-    dispatch(addToHistory(pieces, move));
-    game.move(move);
+    dispatch(setPieces(_pieces));
+    dispatch(cancel());
+    dispatch(addToHistory(_pieces, move));
     dispatch(setTurn(game.turn()));
   };
 
 export const queenSideCastle =
-  (pos: Position, move: Move): AppThunk =>
+  (pieceIds: number[], move: Move): AppThunk =>
   async (dispatch, getState) => {
-    const { focusedPieceId } = getState().gameStore;
-    dispatch(cancel());
+    game.move(move);
+    dispatch(setAnimatingPieceIds(pieceIds));
+    dispatch(setPlayingAudios(game.inCheck() ? ['moveCheck'] : ['castle']));
+    const { focusedPieceId, pieces } = getState().gameStore;
+    const pos = getSquarePosition(move.to);
     const rookPos = {
       from: {
         row: game.turn() === 'w' ? 7 : 0,
@@ -268,7 +284,7 @@ export const queenSideCastle =
         col: 3,
       },
     };
-    let pieces = getState().gameStore.pieces.map((piece) => {
+    let _pieces = pieces.map((piece) => {
       if (piece.id === focusedPieceId) {
         return {
           ...piece,
@@ -285,30 +301,26 @@ export const queenSideCastle =
         return piece;
       }
     });
-    dispatch(setPieces(pieces));
-    dispatch(addToHistory(pieces, move));
-    game.move(move);
+    dispatch(setPieces(_pieces));
+    dispatch(cancel());
+    dispatch(addToHistory(_pieces, move));
     dispatch(setTurn(game.turn()));
   };
 
-export const showPromotionModalBox =
-  (pos: Position, move: Move): AppThunk =>
-  (dispatch) => {
-    dispatch(setHints([]));
-    dispatch(setPromotionData({ pos, move }));
-  };
-
-export const hidePromotionModalBox = (): AppThunk => (dispatch) => {
-  dispatch(cancel());
-  dispatch(setPromotionData(null));
-};
-
 export const promote =
-  (pos: Position, move: Move, pieceName: PieceSymbol): AppThunk =>
+  (pieceIds: number[], move: Move, pieceName: PieceSymbol): AppThunk =>
   (dispatch, getState) => {
-    const { focusedPieceId } = getState().gameStore;
+    game.move({
+      ...move,
+      promotion: pieceName,
+    });
+    dispatch(setAnimatingPieceIds(pieceIds));
+    dispatch(setPlayingAudios(game.inCheck() ? ['moveCheck'] : ['promote']));
+    const { focusedPieceId, pieces } = getState().gameStore;
     dispatch(hidePromotionModalBox());
-    let pieces = getState().gameStore.pieces.map((piece) => {
+    const pos = getSquarePosition(move.to);
+    console.log(pos);
+    let _pieces = pieces.map((piece) => {
       if (piece.id === focusedPieceId) {
         return {
           ...piece,
@@ -318,14 +330,9 @@ export const promote =
         return piece;
       }
     });
-    dispatch(setPieces(pieces));
-    game.move({
-      ...move,
-      promotion: pieceName,
-    });
-    dispatch(setTurn(game.turn()));
+    dispatch(setPieces(_pieces));
     setTimeout(() => {
-      pieces = pieces
+      _pieces = _pieces
         .filter((piece) => {
           return (
             generateSquareName(piece.pos) !== move.to ||
@@ -338,10 +345,23 @@ export const promote =
           }
           return piece;
         });
-      dispatch(setPieces(pieces));
-      dispatch(addToHistory(pieces, move));
+      dispatch(setPieces(_pieces));
+      dispatch(addToHistory(_pieces, move));
+      dispatch(setTurn(game.turn()));
     }, 200);
   };
+
+export const showPromotionModalBox =
+  (pieceIds: number[], move: Move): AppThunk =>
+  (dispatch) => {
+    dispatch(setHints([]));
+    dispatch(setPromotionData({ pieceIds, move }));
+  };
+
+export const hidePromotionModalBox = (): AppThunk => (dispatch) => {
+  dispatch(cancel());
+  dispatch(setPromotionData(null));
+};
 
 export const togglePerspective = (): AppThunk => (dispatch, getState) => {
   dispatch(

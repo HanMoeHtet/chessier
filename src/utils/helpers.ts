@@ -22,12 +22,26 @@ export const getSquarePosition = (name: string): Position => {
   };
 };
 
+const rookIds = new Map<number, number>();
+
+export const getRookId = (pos: Position): number => {
+  const id = rookIds.get(pos.row * 8 + pos.col);
+  if (id === undefined) {
+    console.log(pos, rookIds);
+    throw Error();
+  }
+  return id;
+};
+
 export const getInitialPieces = (): Piece[] => {
   const pieces: Piece[] = [];
   let id = 0;
   game.board().forEach((rank, row) => {
     rank.forEach((square, col) => {
       if (square) {
+        if (square.type === 'r') {
+          rookIds.set(row * 8 + col, id);
+        }
         pieces.push({
           ...square,
           id,

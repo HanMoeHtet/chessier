@@ -1,18 +1,14 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { Piece } from 'src/types';
+import { AudioType, GameHistory, History, Piece } from 'src/types';
 import { AppThunk } from '..';
-import { setPieces } from '../gameStore/gameSlice';
+import {
+  setAnimatingPieceIds,
+  setPieces,
+  setPlayingAudios,
+} from '../gameStore/gameSlice';
 import game from 'src/services/game.service';
 import { getInitialPieces } from 'src/utils/helpers';
 import { Move } from 'chess.ts';
-
-interface GameHistory {
-  currentIndex: number;
-  history: {
-    pieces: Piece[];
-    move: Move | null;
-  }[];
-}
 
 const initialState: GameHistory = {
   currentIndex: 0,
@@ -20,6 +16,8 @@ const initialState: GameHistory = {
     {
       pieces: getInitialPieces(),
       move: null,
+      animatingPieceIds: [],
+      playingAudios: [],
     },
   ],
 };
@@ -30,7 +28,14 @@ export const historySlice = createSlice({
   reducers: {
     setHistory(
       state,
-      action: PayloadAction<{ pieces: Piece[]; move: Move | null }[]>
+      action: PayloadAction<
+        {
+          pieces: Piece[];
+          move: Move | null;
+          animatingPieceIds: number[];
+          playingAudios: AudioType[];
+        }[]
+      >
     ) {
       state.history = action.payload;
     },
@@ -42,11 +47,15 @@ export const historySlice = createSlice({
 
 export const { setHistory, setCurrentIndex } = historySlice.actions;
 
-export const addToHistory =
-  (pieces: Piece[], move: Move): AppThunk =>
+export const addToHistory: (history: History) => AppThunk =
+  ({ pieces, move, animatingPieceIds, playingAudios }): AppThunk =>
   (dispatch, getState) => {
+    const { history } = getState().historyStore;
     dispatch(
-      setHistory([...getState().historyStore.history, { pieces, move }])
+      setHistory([
+        ...history,
+        { animatingPieceIds, playingAudios, pieces, move },
+      ])
     );
     dispatch(setCurrentIndex(getState().historyStore.currentIndex + 1));
   };
@@ -54,19 +63,29 @@ export const addToHistory =
 export const back = (): AppThunk => (dispatch, getState) => {
   const { history, currentIndex } = getState().historyStore;
   if (currentIndex === 0) return;
-  const prevPieces = history[currentIndex - 1].pieces;
+  const { pieces: prevPieces } = history[currentIndex - 1];
+  const { animatingPieceIds, playingAudios } = history[currentIndex];
   game.undo();
   dispatch(setPieces(prevPieces));
+  dispatch(setAnimatingPieceIds(animatingPieceIds));
+  dispatch(setPlayingAudios(playingAudios));
   dispatch(setCurrentIndex(currentIndex - 1));
 };
 
 export const next = (): AppThunk => (dispatch, getState) => {
   const { history, currentIndex } = getState().historyStore;
   if (currentIndex === history.length - 1) return;
-  const { pieces: nextPieces, move } = history[currentIndex + 1];
+  const {
+    pieces: nextPieces,
+    move,
+    animatingPieceIds,
+    playingAudios,
+  } = history[currentIndex + 1];
   if (!move) return;
   game.move(move);
   dispatch(setPieces(nextPieces));
+  dispatch(setAnimatingPieceIds(animatingPieceIds));
+  dispatch(setPlayingAudios(playingAudios));
   dispatch(setCurrentIndex(currentIndex + 1));
 };
 

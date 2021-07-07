@@ -4,6 +4,7 @@ import game from 'src/services/game.service';
 import {
   AudioType,
   Color,
+  GameState,
   Highlight,
   Hint,
   Piece,
@@ -13,22 +14,11 @@ import {
 import {
   generateSquareName,
   getInitialPieces,
+  getRookId,
   getSquarePosition,
 } from 'src/utils/helpers';
 import { AppThunk } from '..';
 import { addToHistory } from '../historyStore/historySlice';
-
-export interface GameState {
-  focusedPieceId: number | null;
-  pieces: Piece[];
-  hints: Hint[];
-  turn: string;
-  highlights: Highlight[];
-  promotionData: null | PromotionData;
-  perspective: 'w' | 'b';
-  animatingPieceIds: number[];
-  playingAudios: AudioType[];
-}
 
 const initialState: GameState = {
   pieces: getInitialPieces(),
@@ -100,7 +90,8 @@ export const focus =
       })
       .reduce((prev: Hint[], cur) => {
         if (!prev.find((hint) => hint.move.to === cur.to)) {
-          prev.push({ move: cur, pieceIds: [pieceId] });
+          const pieceIds = [pieceId];
+          prev.push({ move: cur, pieceIds });
         }
         return prev;
       }, []);
@@ -136,7 +127,10 @@ export const move =
   async (dispatch, getState) => {
     game.move(move);
     dispatch(setAnimatingPieceIds(pieceIds));
-    dispatch(setPlayingAudios(game.inCheck() ? ['moveCheck'] : ['moveSelf']));
+    const playingAudios: AudioType[] = game.inCheck()
+      ? ['moveCheck']
+      : ['moveSelf'];
+    dispatch(setPlayingAudios(playingAudios));
     const { focusedPieceId, pieces } = getState().gameStore;
     const pos = getSquarePosition(move.to);
     let _pieces = pieces.map((piece) => {
@@ -150,7 +144,14 @@ export const move =
       }
     });
     dispatch(setPieces(_pieces));
-    dispatch(addToHistory(_pieces, move));
+    dispatch(
+      addToHistory({
+        animatingPieceIds: pieceIds,
+        playingAudios,
+        pieces: _pieces,
+        move,
+      })
+    );
     dispatch(setTurn(game.turn()));
     dispatch(cancel());
   };
@@ -160,7 +161,10 @@ export const capture =
   async (dispatch, getState) => {
     game.move(move);
     dispatch(setAnimatingPieceIds(pieceIds));
-    dispatch(setPlayingAudios(game.inCheck() ? ['moveCheck'] : ['capture']));
+    const playingAudios: AudioType[] = game.inCheck()
+      ? ['moveCheck']
+      : ['capture'];
+    dispatch(setPlayingAudios(playingAudios));
     const { focusedPieceId, pieces } = getState().gameStore;
     const pos = getSquarePosition(move.to);
     let _pieces = pieces.map((piece) => {
@@ -183,7 +187,14 @@ export const capture =
         );
       });
       dispatch(setPieces(_pieces));
-      dispatch(addToHistory(_pieces, move));
+      dispatch(
+        addToHistory({
+          animatingPieceIds: pieceIds,
+          playingAudios,
+          pieces: _pieces,
+          move,
+        })
+      );
       dispatch(setTurn(game.turn()));
     }, 200);
   };
@@ -193,7 +204,10 @@ export const enPassant =
   async (dispatch, getState) => {
     game.move(move);
     dispatch(setAnimatingPieceIds(pieceIds));
-    dispatch(setPlayingAudios(game.inCheck() ? ['moveCheck'] : ['capture']));
+    const playingAudios: AudioType[] = game.inCheck()
+      ? ['moveCheck']
+      : ['capture'];
+    dispatch(setPlayingAudios(playingAudios));
     const { focusedPieceId, pieces } = getState().gameStore;
     const pos = getSquarePosition(move.to);
     let _pieces = pieces.map((piece) => {
@@ -220,7 +234,14 @@ export const enPassant =
         );
       });
       dispatch(setPieces(_pieces));
-      dispatch(addToHistory(_pieces, move));
+      dispatch(
+        addToHistory({
+          animatingPieceIds: pieceIds,
+          playingAudios,
+          pieces: _pieces,
+          move,
+        })
+      );
       dispatch(setTurn(game.turn()));
     }, 200);
   };
@@ -229,17 +250,21 @@ export const kingSideCastle =
   (pieceIds: number[], move: Move): AppThunk =>
   async (dispatch, getState) => {
     game.move(move);
-    dispatch(setAnimatingPieceIds(pieceIds));
-    dispatch(setPlayingAudios(game.inCheck() ? ['moveCheck'] : ['castle']));
-    const { focusedPieceId, pieces } = getState().gameStore;
+    const { focusedPieceId, pieces, turn } = getState().gameStore;
+    const rookId = getRookId({ row: turn === 'w' ? 7 : 0, col: 7 });
+    dispatch(setAnimatingPieceIds([...pieceIds, rookId]));
+    const playingAudios: AudioType[] = game.inCheck()
+      ? ['moveCheck']
+      : ['castle'];
+    dispatch(setPlayingAudios(playingAudios));
     const pos = getSquarePosition(move.to);
     const rookPos = {
       from: {
-        row: game.turn() === 'w' ? 7 : 0,
+        row: turn === 'w' ? 7 : 0,
         col: 7,
       },
       to: {
-        row: game.turn() === 'w' ? 7 : 0,
+        row: turn === 'w' ? 7 : 0,
         col: 5,
       },
     };
@@ -262,7 +287,14 @@ export const kingSideCastle =
     });
     dispatch(setPieces(_pieces));
     dispatch(cancel());
-    dispatch(addToHistory(_pieces, move));
+    dispatch(
+      addToHistory({
+        animatingPieceIds: pieceIds,
+        playingAudios,
+        pieces: _pieces,
+        move,
+      })
+    );
     dispatch(setTurn(game.turn()));
   };
 
@@ -270,17 +302,21 @@ export const queenSideCastle =
   (pieceIds: number[], move: Move): AppThunk =>
   async (dispatch, getState) => {
     game.move(move);
-    dispatch(setAnimatingPieceIds(pieceIds));
-    dispatch(setPlayingAudios(game.inCheck() ? ['moveCheck'] : ['castle']));
-    const { focusedPieceId, pieces } = getState().gameStore;
+    const { focusedPieceId, pieces, turn } = getState().gameStore;
+    const rookId = getRookId({ row: turn === 'w' ? 7 : 0, col: 7 });
+    dispatch(setAnimatingPieceIds([...pieceIds, rookId]));
+    const playingAudios: AudioType[] = game.inCheck()
+      ? ['moveCheck']
+      : ['castle'];
+    dispatch(setPlayingAudios(playingAudios));
     const pos = getSquarePosition(move.to);
     const rookPos = {
       from: {
-        row: game.turn() === 'w' ? 7 : 0,
+        row: turn === 'w' ? 7 : 0,
         col: 0,
       },
       to: {
-        row: game.turn() === 'w' ? 7 : 0,
+        row: turn === 'w' ? 7 : 0,
         col: 3,
       },
     };
@@ -303,7 +339,14 @@ export const queenSideCastle =
     });
     dispatch(setPieces(_pieces));
     dispatch(cancel());
-    dispatch(addToHistory(_pieces, move));
+    dispatch(
+      addToHistory({
+        animatingPieceIds: pieceIds,
+        playingAudios,
+        pieces: _pieces,
+        move,
+      })
+    );
     dispatch(setTurn(game.turn()));
   };
 
@@ -315,7 +358,10 @@ export const promote =
       promotion: pieceName,
     });
     dispatch(setAnimatingPieceIds(pieceIds));
-    dispatch(setPlayingAudios(game.inCheck() ? ['moveCheck'] : ['promote']));
+    const playingAudios: AudioType[] = game.inCheck()
+      ? ['moveCheck']
+      : ['promote'];
+    dispatch(setPlayingAudios(playingAudios));
     const { focusedPieceId, pieces } = getState().gameStore;
     dispatch(hidePromotionModalBox());
     const pos = getSquarePosition(move.to);
@@ -346,7 +392,14 @@ export const promote =
           return piece;
         });
       dispatch(setPieces(_pieces));
-      dispatch(addToHistory(_pieces, move));
+      dispatch(
+        addToHistory({
+          animatingPieceIds: pieceIds,
+          playingAudios,
+          pieces: _pieces,
+          move,
+        })
+      );
       dispatch(setTurn(game.turn()));
     }, 200);
   };

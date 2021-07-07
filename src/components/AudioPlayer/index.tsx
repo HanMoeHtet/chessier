@@ -1,5 +1,6 @@
 import React, { useEffect, useRef } from 'react';
-import { useAppSelector } from 'src/store/hooks';
+import { setPlayingAudios } from 'src/store/gameStore/gameSlice';
+import { useAppDispatch, useAppSelector } from 'src/store/hooks';
 import { AudioType } from 'src/types';
 
 const AudioPlayer: React.FC = () => {
@@ -8,11 +9,19 @@ const AudioPlayer: React.FC = () => {
   );
   const audioRefs = useRef<Map<AudioType, HTMLAudioElement | null>>(new Map());
 
+  const dispatch = useAppDispatch();
+
   useEffect(() => {
     playingAudios.forEach((playingAudio) => {
-      audioRefs.current.get(playingAudio)?.play();
+      const audio = audioRefs.current.get(playingAudio);
+      if (audio) {
+        audio.play();
+        audio.onended = function () {
+          dispatch(setPlayingAudios([]));
+        };
+      }
     });
-  }, [playingAudios]);
+  }, [playingAudios, dispatch]);
 
   return (
     <>

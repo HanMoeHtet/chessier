@@ -1,5 +1,4 @@
 import { Move, Piece as ChessPiece } from 'chess.ts';
-import Hint from './components/Hint';
 
 export interface Position {
   row: number;
@@ -36,4 +35,28 @@ export type AudioType =
 export interface Hint {
   move: Move;
   pieceIds: number[];
+}
+
+export interface GameState {
+  focusedPieceId: number | null;
+  pieces: Piece[];
+  hints: Hint[];
+  turn: string;
+  highlights: Highlight[];
+  promotionData: null | PromotionData;
+  perspective: 'w' | 'b';
+  animatingPieceIds: number[];
+  playingAudios: AudioType[];
+}
+
+export interface History {
+  pieces: Piece[];
+  move: Move | null;
+  animatingPieceIds: number[];
+  playingAudios: AudioType[];
+}
+
+export interface GameHistory {
+  currentIndex: number;
+  history: History[];
 }

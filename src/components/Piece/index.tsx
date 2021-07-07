@@ -1,21 +1,22 @@
-import { cancel, focus } from 'src/store/gameStore/gameSlice';
+import {
+  cancel,
+  focus,
+  setAnimatingPieceIds,
+} from 'src/store/gameStore/gameSlice';
 import { useAppDispatch, useAppSelector } from 'src/store/hooks';
 import { Piece as PieceType } from 'src/types';
 import { SQUARE_WIDTH } from 'src/utils/constants';
 import styles from './index.module.css';
 
-interface Props extends PieceType {
-  setRef: (current: HTMLDivElement | null) => void;
-}
+interface Props extends PieceType {}
 
 /**
  * FIXME: Play animation only when intended
  */
-const Piece: React.FC<Props> = ({ type, color, id, pos, setRef }) => {
-  const focusedPieceId = useAppSelector(
-    (state) => state.gameStore.focusedPieceId
+const Piece: React.FC<Props> = ({ type, color, id, pos }) => {
+  const { focusedPieceId, animatingPieceIds, perspective } = useAppSelector(
+    (state) => state.gameStore
   );
-  const perspective = useAppSelector((state) => state.gameStore.perspective);
 
   const dispatch = useAppDispatch();
 
@@ -28,16 +29,22 @@ const Piece: React.FC<Props> = ({ type, color, id, pos, setRef }) => {
     }
   };
 
+  const handleTransitionEnd = () => {
+    dispatch(setAnimatingPieceIds([]));
+  };
+
   return (
     <div
-      ref={setRef}
-      className={`${styles.piece} ${styles[color + type]}`}
+      className={`${styles.piece} ${styles[color + type]} ${
+        animatingPieceIds.includes(id) ? styles.animate : ''
+      }`}
       style={{
         transform: `translate(${pos.col * SQUARE_WIDTH}px, ${
           pos.row * SQUARE_WIDTH
         }px) ${perspective === 'w' ? '' : 'rotateZ(180deg)'}`,
       }}
       onClick={onPieceClicked}
+      onTransitionEnd={handleTransitionEnd}
     ></div>
   );
 };

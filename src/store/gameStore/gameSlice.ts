@@ -1,7 +1,15 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { Move, PieceSymbol } from 'chess.ts';
 import game from 'src/services/game.service';
-import { Color, Highlight, Piece, Position, PromotionData } from 'src/types';
+import {
+  AudioType,
+  Color,
+  Highlight,
+  Hint,
+  Piece,
+  Position,
+  PromotionData,
+} from 'src/types';
 import {
   generateSquareName,
   getInitialPieces,
@@ -13,11 +21,13 @@ import { addToHistory } from '../historyStore/historySlice';
 export interface GameState {
   focusedPieceId: number | null;
   pieces: Piece[];
-  hints: Move[];
+  hints: Hint[];
   turn: string;
   highlights: Highlight[];
   promotionData: null | PromotionData;
   perspective: 'w' | 'b';
+  animatingPieceIds: number[];
+  playingAudios: AudioType[];
 }
 
 const initialState: GameState = {
@@ -28,6 +38,8 @@ const initialState: GameState = {
   turn: game.turn(),
   promotionData: null,
   perspective: 'w',
+  animatingPieceIds: [],
+  playingAudios: [],
 };
 
 export const gameSlice = createSlice({
@@ -37,7 +49,7 @@ export const gameSlice = createSlice({
     setFocusedPieceId(state, action: PayloadAction<number | null>) {
       state.focusedPieceId = action.payload;
     },
-    setHints(state, action: PayloadAction<Move[]>) {
+    setHints(state, action: PayloadAction<Hint[]>) {
       state.hints = action.payload;
     },
     setHighlights(state, action: PayloadAction<Highlight[]>) {
@@ -55,6 +67,12 @@ export const gameSlice = createSlice({
     setPerspective(state, action: PayloadAction<'w' | 'b'>) {
       state.perspective = action.payload;
     },
+    setPlayingAudios(state, action: PayloadAction<AudioType[]>) {
+      state.playingAudios = action.payload;
+    },
+    setAnimatingPieceIds(state, action: PayloadAction<number[]>) {
+      state.animatingPieceIds = action.payload;
+    },
   },
 });
 
@@ -66,6 +84,8 @@ export const {
   setTurn,
   setPromotionData,
   setPerspective,
+  setPlayingAudios,
+  setAnimatingPieceIds,
 } = gameSlice.actions;
 
 export const focus =
@@ -78,9 +98,9 @@ export const focus =
         square: generateSquareName(pos),
         verbose: true,
       })
-      .reduce((prev: Move[], cur) => {
-        if (!prev.find((hint) => hint.to === cur.to)) {
-          prev.push(cur);
+      .reduce((prev: Hint[], cur) => {
+        if (!prev.find((hint) => hint.move.to === cur.to)) {
+          prev.push({ move: cur, pieceIds: [pieceId] });
         }
         return prev;
       }, []);
@@ -128,7 +148,6 @@ export const move =
     });
     dispatch(setPieces(_pieces));
     dispatch(addToHistory(_pieces, move));
-    game.move(move);
     dispatch(setTurn(game.turn()));
   };
 
@@ -157,7 +176,6 @@ export const capture =
       });
       dispatch(setPieces(pieces));
       dispatch(addToHistory(pieces, move));
-      game.move(move);
       dispatch(setTurn(game.turn()));
     }, 200);
   };

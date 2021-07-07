@@ -12,9 +12,10 @@ import PromotionModalBox from '../PromotionModalBox';
 import { back } from 'src/store/historyStore/historySlice';
 import Highlight from '../Highlight';
 import { mark, move } from 'src/store/gameStore/gameSlice';
+import AudioPlayer from '../AudioPlayer';
 
 const Board: React.FC = () => {
-  const pieceRefs = useRef<Map<number, HTMLDivElement | null>>(new Map());
+  const turn = useAppSelector((state) => state.gameStore.turn);
 
   const { pieces, perspective, highlights, hints, focusedPieceId } =
     useAppSelector((state) => state.gameStore);
@@ -36,26 +37,14 @@ const Board: React.FC = () => {
 
   const renderPieces = (): JSX.Element[] => {
     return pieces.map((piece) => {
-      return (
-        <Piece
-          setRef={(el) => {
-            pieceRefs.current.set(piece.id, el);
-          }}
-          key={piece.id}
-          {...piece}
-        />
-      );
+      return <Piece key={piece.id} {...piece} />;
     });
   };
 
   const renderHints = (): JSX.Element[] => {
     return hints.map((hint) => {
-      const [row, col] = getSquarePosition(hint.to);
-      const els = [pieceRefs.current.get(focusedPieceId!)];
-      if (['k', 'q'].includes(hint.flags)) {
-        // TODO: Add rook animation
-      }
-      return <Hint key={hint.san} move={hint} pos={{ row, col }} els={els} />;
+      const [row, col] = getSquarePosition(hint.move.to);
+      return <Hint key={hint.move.san} {...hint} pos={{ row, col }} />;
     });
   };
 
@@ -87,6 +76,7 @@ const Board: React.FC = () => {
       {renderPieces()}
       {renderHints()}
       {renderHighlights()}
+      <AudioPlayer />
       <PromotionModalBox />
     </div>
   );

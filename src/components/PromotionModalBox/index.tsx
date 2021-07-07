@@ -3,8 +3,13 @@ import styles from './index.module.css';
 import pieceStyles from '../Piece/index.module.css';
 import { useAppDispatch, useAppSelector } from 'src/store/hooks';
 import { SQUARE_WIDTH } from 'src/utils/constants';
-import { promote, setPromotionData } from 'src/store/gameStore/gameSlice';
+import {
+  promote,
+  setPlayingAudios,
+  setPromotionData,
+} from 'src/store/gameStore/gameSlice';
 import { PieceSymbol } from 'chess.ts';
+import game from 'src/services/game.service';
 
 const PromotionModalBox: React.FC = () => {
   const turn = useAppSelector((state) => state.gameStore.turn);
@@ -18,14 +23,14 @@ const PromotionModalBox: React.FC = () => {
   const { pos, move } = data;
 
   const onPieceClicked = (pieceName: PieceSymbol) => {
+    game.move(move);
+    dispatch(setPlayingAudios(game.inCheck() ? ['moveCheck'] : ['promote']));
     dispatch(promote(pos, move, pieceName));
   };
 
   const onCloseButtonClicked = () => {
     dispatch(setPromotionData(null));
   };
-
-  console.log(perspective, turn);
 
   return (
     <div

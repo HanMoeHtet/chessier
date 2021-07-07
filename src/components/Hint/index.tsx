@@ -1,13 +1,14 @@
 import { Move } from 'chess.ts';
 import React from 'react';
-import { useAnimation } from 'src/composables/useAnimation';
-import { useAudioPlayer } from 'src/composables/useAudioPlayer';
+import game from 'src/services/game.service';
 import {
   capture,
   enPassant,
   kingSideCastle,
   move as gameMove,
   queenSideCastle,
+  setAnimatingPieceIds,
+  setPlayingAudios,
   showPromotionModalBox,
 } from 'src/store/gameStore/gameSlice';
 import { useAppDispatch } from 'src/store/hooks';
@@ -17,48 +18,49 @@ import styles from './index.module.css';
 interface Props {
   pos: { row: number; col: number };
   move: Move;
-  els: (HTMLElement | null | undefined)[];
+  pieceIds: number[];
 }
 
-const Hint: React.FC<Props> = ({ pos, move, els }) => {
-  const player = useAudioPlayer();
-  const animation = useAnimation();
-
+const Hint: React.FC<Props> = ({ pos, move, pieceIds }) => {
   const dispatch = useAppDispatch();
 
   /**
    * TODO: Modify move process (animation and stuff)
    */
   const handleClick = () => {
-    els.forEach((el) => {
-      if (el) animation.animate(el);
-    });
+    game.move(move);
+    dispatch(setAnimatingPieceIds(pieceIds));
     switch (move.flags) {
       case 'e':
-        player.capture();
+        dispatch(
+          setPlayingAudios(game.inCheck() ? ['moveCheck'] : ['capture'])
+        );
         dispatch(enPassant(pos, move));
         break;
       case 'c':
-        player.capture();
+        dispatch(
+          setPlayingAudios(game.inCheck() ? ['moveCheck'] : ['capture'])
+        );
         dispatch(capture(pos, move));
         break;
       case 'cp':
-        player.capture();
         dispatch(showPromotionModalBox(pos, move));
         break;
       case 'np':
         dispatch(showPromotionModalBox(pos, move));
         break;
       case 'k':
-        player.castle();
+        dispatch(setPlayingAudios(game.inCheck() ? ['moveCheck'] : ['castle']));
         dispatch(kingSideCastle(pos, move));
         break;
       case 'q':
-        player.castle();
+        dispatch(setPlayingAudios(game.inCheck() ? ['moveCheck'] : ['castle']));
         dispatch(queenSideCastle(pos, move));
         break;
       default:
-        player.moveSelf();
+        dispatch(
+          setPlayingAudios(game.inCheck() ? ['moveCheck'] : ['moveSelf'])
+        );
         dispatch(gameMove(pos, move));
         break;
     }

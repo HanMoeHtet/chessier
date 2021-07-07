@@ -21,3 +21,21 @@ export interface Highlight {
   pos: Position;
   color: Color;
 }
+
+export type AudioType =
+  | 'start'
+  | 'end'
+  | 'capture'
+  | 'castle'
+  | 'promote'
+  | 'moveSelf'
+  | 'moveCheck'
+  | 'moveOpponent'
+  | 'premove'
+  | 'tenSeconds'
+  | 'illegal';
+
+export interface Hint {
+  move: Move;
+  pieceIds: number[];
+}

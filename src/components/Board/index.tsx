@@ -46,7 +46,10 @@ const Board: React.FC = () => {
   };
 
   const renderHighlights = () => {
-    return highlights.map((highlight) => {
+    const _highlights = Object.values(highlights).reduce((prev, cur) => {
+      return [...prev, ...cur];
+    }, []);
+    return _highlights.map((highlight) => {
       const key = generateSquareName(highlight.pos) + highlight.color;
       return <Highlight key={key} {...highlight} />;
     });

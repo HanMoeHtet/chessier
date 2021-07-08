@@ -42,7 +42,7 @@ export interface GameState {
   pieces: Piece[];
   hints: Hint[];
   turn: string;
-  highlights: Highlight[];
+  highlights: { prevMoves: Highlight[]; marked: Highlight[] };
   promotionData: null | PromotionData;
   perspective: 'w' | 'b';
   animatingPieceIds: number[];

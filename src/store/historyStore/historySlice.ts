@@ -3,11 +3,12 @@ import { AudioType, GameHistory, History, Piece } from 'src/types';
 import { AppThunk } from '..';
 import {
   setAnimatingPieceIds,
+  setHighlights,
   setPieces,
   setPlayingAudios,
 } from '../gameStore/gameSlice';
 import game from 'src/services/game.service';
-import { getInitialPieces } from 'src/utils/helpers';
+import { getInitialPieces, getSquarePosition } from 'src/utils/helpers';
 import { Move } from 'chess.ts';
 
 const initialState: GameHistory = {
@@ -63,13 +64,31 @@ export const addToHistory: (history: History) => AppThunk =
 export const back = (): AppThunk => (dispatch, getState) => {
   const { history, currentIndex } = getState().historyStore;
   if (currentIndex === 0) return;
-  const { pieces: prevPieces } = history[currentIndex - 1];
+  const { pieces: prevPieces, move } = history[currentIndex - 1];
   const { animatingPieceIds, playingAudios } = history[currentIndex];
   game.undo();
   dispatch(setPieces(prevPieces));
   dispatch(setAnimatingPieceIds(animatingPieceIds));
   dispatch(setPlayingAudios(playingAudios));
   dispatch(setCurrentIndex(currentIndex - 1));
+  if (!move) {
+    dispatch(
+      setHighlights({
+        marked: [],
+        prevMoves: [],
+      })
+    );
+  } else {
+    dispatch(
+      setHighlights({
+        marked: [],
+        prevMoves: [
+          { pos: getSquarePosition(move.to), color: 'blue' },
+          { pos: getSquarePosition(move.from), color: 'blue' },
+        ],
+      })
+    );
+  }
 };
 
 export const next = (): AppThunk => (dispatch, getState) => {
@@ -87,6 +106,15 @@ export const next = (): AppThunk => (dispatch, getState) => {
   dispatch(setAnimatingPieceIds(animatingPieceIds));
   dispatch(setPlayingAudios(playingAudios));
   dispatch(setCurrentIndex(currentIndex + 1));
+  dispatch(
+    setHighlights({
+      marked: [],
+      prevMoves: [
+        { pos: getSquarePosition(move.to), color: 'blue' },
+        { pos: getSquarePosition(move.from), color: 'blue' },
+      ],
+    })
+  );
 };
 
 export default historySlice.reducer;

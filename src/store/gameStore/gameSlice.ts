@@ -24,7 +24,7 @@ const initialState: GameState = {
   pieces: getInitialPieces(),
   focusedPieceId: null,
   hints: [],
-  highlights: [],
+  highlights: { prevMoves: [], marked: [] },
   turn: game.turn(),
   promotionData: null,
   perspective: 'w',
@@ -42,7 +42,10 @@ export const gameSlice = createSlice({
     setHints(state, action: PayloadAction<Hint[]>) {
       state.hints = action.payload;
     },
-    setHighlights(state, action: PayloadAction<Highlight[]>) {
+    setHighlights(
+      state,
+      action: PayloadAction<{ prevMoves: Highlight[]; marked: Highlight[] }>
+    ) {
       state.highlights = action.payload;
     },
     setPieces(state, action: PayloadAction<Piece[]>) {
@@ -80,9 +83,12 @@ export const {
 
 export const focus =
   (pieceId: number, pos: Position): AppThunk =>
-  async (dispatch) => {
+  async (dispatch, getState) => {
+    const { highlights } = getState().gameStore;
     dispatch(setFocusedPieceId(pieceId));
-    dispatch(setHighlights([{ pos, color: 'blue' }]));
+    dispatch(
+      setHighlights({ ...highlights, marked: [{ pos, color: 'blue' }] })
+    );
     const hints = game
       .moves({
         square: generateSquareName(pos),
@@ -105,21 +111,27 @@ export const mark =
     let _highlights;
     if (focusedPieceId) {
       dispatch(cancel());
-      dispatch(setHighlights([{ color, pos }]));
+      dispatch(setHighlights({ ...highlights, marked: [{ color, pos }] }));
     } else {
-      _highlights = highlights
+      _highlights = highlights.marked
         .filter(
           (highlight) =>
             generateSquareName(highlight.pos) !== generateSquareName(pos)
         )
         .concat({ color, pos });
-      dispatch(setHighlights(_highlights));
+      dispatch(setHighlights({ ...highlights, marked: _highlights }));
     }
   };
 
-export const cancel = (): AppThunk => (dispatch) => {
+export const cancel = (): AppThunk => (dispatch, getState) => {
   dispatch(setFocusedPieceId(null));
   dispatch(setHints([]));
+  dispatch(
+    setHighlights({
+      marked: [],
+      prevMoves: getState().gameStore.highlights.prevMoves,
+    })
+  );
 };
 
 export const move =
@@ -154,6 +166,15 @@ export const move =
     );
     dispatch(setTurn(game.turn()));
     dispatch(cancel());
+    dispatch(
+      setHighlights({
+        marked: [],
+        prevMoves: [
+          { pos, color: 'blue' },
+          { pos: getSquarePosition(move.from), color: 'blue' },
+        ],
+      })
+    );
   };
 
 export const capture =
@@ -193,6 +214,15 @@ export const capture =
           playingAudios,
           pieces: _pieces,
           move,
+        })
+      );
+      dispatch(
+        setHighlights({
+          marked: [],
+          prevMoves: [
+            { pos, color: 'blue' },
+            { pos: getSquarePosition(move.from), color: 'blue' },
+          ],
         })
       );
       dispatch(setTurn(game.turn()));
@@ -240,6 +270,15 @@ export const enPassant =
           playingAudios,
           pieces: _pieces,
           move,
+        })
+      );
+      dispatch(
+        setHighlights({
+          marked: [],
+          prevMoves: [
+            { pos, color: 'blue' },
+            { pos: getSquarePosition(move.from), color: 'blue' },
+          ],
         })
       );
       dispatch(setTurn(game.turn()));
@@ -295,6 +334,15 @@ export const kingSideCastle =
         move,
       })
     );
+    dispatch(
+      setHighlights({
+        marked: [],
+        prevMoves: [
+          { pos, color: 'blue' },
+          { pos: getSquarePosition(move.from), color: 'blue' },
+        ],
+      })
+    );
     dispatch(setTurn(game.turn()));
   };
 
@@ -345,6 +393,15 @@ export const queenSideCastle =
         playingAudios,
         pieces: _pieces,
         move,
+      })
+    );
+    dispatch(
+      setHighlights({
+        marked: [],
+        prevMoves: [
+          { pos, color: 'blue' },
+          { pos: getSquarePosition(move.from), color: 'blue' },
+        ],
       })
     );
     dispatch(setTurn(game.turn()));
@@ -398,6 +455,15 @@ export const promote =
           playingAudios,
           pieces: _pieces,
           move,
+        })
+      );
+      dispatch(
+        setHighlights({
+          marked: [],
+          prevMoves: [
+            { pos, color: 'blue' },
+            { pos: getSquarePosition(move.from), color: 'blue' },
+          ],
         })
       );
       dispatch(setTurn(game.turn()));

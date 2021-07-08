@@ -10,9 +10,6 @@ import styles from './index.module.css';
 
 interface Props extends PieceType {}
 
-/**
- * FIXME: Play animation only when intended
- */
 const Piece: React.FC<Props> = ({ type, color, id, pos }) => {
   const { focusedPieceId, animatingPieceIds, perspective } = useAppSelector(
     (state) => state.gameStore

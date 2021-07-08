@@ -15,7 +15,11 @@ const AudioPlayer: React.FC = () => {
     playingAudios.forEach((playingAudio) => {
       const audio = audioRefs.current.get(playingAudio);
       if (audio) {
-        audio.play();
+        audio.play().catch((err) => {
+          if (err.name === 'NotAllowedError') {
+            console.log("Opps audio can't be played right after page loads.");
+          }
+        });
         audio.onended = function () {
           dispatch(setPlayingAudios([]));
         };

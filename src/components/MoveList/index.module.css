@@ -1,0 +1,47 @@
+.container {
+  overflow-y: auto;
+  height: 360px;
+}
+
+.container::-webkit-scrollbar {
+  appearance: none;
+  width: 5px;
+}
+
+.container::-webkit-scrollbar-thumb {
+  background-color: rgba(0, 0, 0, 0.5);
+}
+
+.moveList {
+  color: rgba(255, 255, 255, 0.8);
+  font-weight: bold;
+  font-size: 12px;
+  border-collapse: separate;
+  border-spacing: 5px;
+}
+
+.moveList td {
+  padding: 5px;
+}
+
+.focused {
+  background-color: #ffffff33;
+  border-color: #ffffff1a !important;
+}
+
+.number {
+  cursor: default;
+  width: 30px;
+}
+
+.move {
+  cursor: pointer;
+  width: 80px;
+  border-radius: 2px;
+  border-bottom: 3px solid transparent;
+}
+
+.move:hover {
+  background-color: #ffffff11;
+  border-color: #ffffff0a;
+}

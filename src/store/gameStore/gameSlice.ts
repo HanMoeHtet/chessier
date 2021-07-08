@@ -137,13 +137,16 @@ export const cancel = (): AppThunk => (dispatch, getState) => {
 export const move =
   (pieceIds: number[], move: Move): AppThunk =>
   async (dispatch, getState) => {
+    const { focusedPieceId, pieces, turn } = getState().gameStore;
     game.move(move);
     dispatch(setAnimatingPieceIds(pieceIds));
+    // TODO: This is a mocked version. Replace it when player system is implemented.
     const playingAudios: AudioType[] = game.inCheck()
       ? ['moveCheck']
-      : ['moveSelf'];
+      : turn === 'w'
+      ? ['moveSelf']
+      : ['moveOpponent'];
     dispatch(setPlayingAudios(playingAudios));
-    const { focusedPieceId, pieces } = getState().gameStore;
     const pos = getSquarePosition(move.to);
     let _pieces = pieces.map((piece) => {
       if (piece.id === focusedPieceId) {

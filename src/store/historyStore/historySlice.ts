@@ -117,4 +117,25 @@ export const next = (): AppThunk => (dispatch, getState) => {
   );
 };
 
+export const goto =
+  (index: number): AppThunk =>
+  (dispatch, getState) => {
+    const { history } = getState().historyStore;
+    const { pieces, move, animatingPieceIds, playingAudios } = history[index];
+    if (!move) return;
+    dispatch(setPieces(pieces));
+    dispatch(setAnimatingPieceIds(animatingPieceIds));
+    dispatch(setPlayingAudios(playingAudios));
+    dispatch(setCurrentIndex(index));
+    dispatch(
+      setHighlights({
+        marked: [],
+        prevMoves: [
+          { pos: getSquarePosition(move.to), color: 'blue' },
+          { pos: getSquarePosition(move.from), color: 'blue' },
+        ],
+      })
+    );
+  };
+
 export default historySlice.reducer;

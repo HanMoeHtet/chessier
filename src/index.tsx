@@ -6,9 +6,20 @@ import { Provider } from 'react-redux';
 import * as serviceWorker from './serviceWorker';
 import './index.css';
 
-if (process.env.NODE_ENV !== 'production') {
-  import('src/debug');
-}
+import { setIsLoading, setUser } from 'src/store/authStore/authSlice';
+import firebase from 'src/services/firebase.service';
+
+firebase.auth().onAuthStateChanged((user) => {
+  if (!user) {
+    store.dispatch(setIsLoading(false));
+    return;
+  }
+  const { displayName, email, phoneNumber, uid, photoURL, providerId } = user;
+  store.dispatch(
+    setUser({ displayName, email, phoneNumber, uid, photoURL, providerId })
+  );
+  store.dispatch(setIsLoading(false));
+});
 
 ReactDOM.render(
   <React.StrictMode>

@@ -1,14 +1,14 @@
 import React from 'react';
-import { useHistory } from 'react-router-dom';
+import { useAppSelector } from 'src/store/hooks';
 
 const Home: React.FC = () => {
-  const history = useHistory();
+  const user = useAppSelector((state) => state.authStore.user!);
 
-  const handleClick = () => {
-    history.push('/play');
-  };
-
-  return <button onClick={handleClick}>Play</button>;
+  return (
+    <div>
+      <pre>{JSON.stringify(user, undefined, 4)}</pre>
+    </div>
+  );
 };
 
 export default Home;

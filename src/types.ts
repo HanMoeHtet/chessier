@@ -60,3 +60,5 @@ export interface GameHistory {
   currentIndex: number;
   history: History[];
 }
+
+export type Provider = 'google' | 'facebook' | 'github';

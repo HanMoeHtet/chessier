@@ -146,6 +146,15 @@ export const move =
       : turn === 'w'
       ? ['moveSelf']
       : ['moveOpponent'];
+    if (
+      game.inCheckmate() ||
+      game.inDraw() ||
+      game.inStalemate() ||
+      game.inThreefoldRepetition() ||
+      game.insufficientMaterial()
+    ) {
+      playingAudios.push('end');
+    }
     dispatch(setPlayingAudios(playingAudios));
     const pos = getSquarePosition(move.to);
     let _pieces = pieces.map((piece) => {
@@ -188,6 +197,15 @@ export const capture =
     const playingAudios: AudioType[] = game.inCheck()
       ? ['moveCheck']
       : ['capture'];
+    if (
+      game.inCheckmate() ||
+      game.inDraw() ||
+      game.inStalemate() ||
+      game.inThreefoldRepetition() ||
+      game.insufficientMaterial()
+    ) {
+      playingAudios.push('end');
+    }
     dispatch(setPlayingAudios(playingAudios));
     const { focusedPieceId, pieces } = getState().gameStore;
     const pos = getSquarePosition(move.to);
@@ -240,6 +258,15 @@ export const enPassant =
     const playingAudios: AudioType[] = game.inCheck()
       ? ['moveCheck']
       : ['capture'];
+    if (
+      game.inCheckmate() ||
+      game.inDraw() ||
+      game.inStalemate() ||
+      game.inThreefoldRepetition() ||
+      game.insufficientMaterial()
+    ) {
+      playingAudios.push('end');
+    }
     dispatch(setPlayingAudios(playingAudios));
     const { focusedPieceId, pieces } = getState().gameStore;
     const pos = getSquarePosition(move.to);
@@ -298,6 +325,15 @@ export const kingSideCastle =
     const playingAudios: AudioType[] = game.inCheck()
       ? ['moveCheck']
       : ['castle'];
+    if (
+      game.inCheckmate() ||
+      game.inDraw() ||
+      game.inStalemate() ||
+      game.inThreefoldRepetition() ||
+      game.insufficientMaterial()
+    ) {
+      playingAudios.push('end');
+    }
     dispatch(setPlayingAudios(playingAudios));
     const pos = getSquarePosition(move.to);
     const rookPos = {
@@ -359,6 +395,15 @@ export const queenSideCastle =
     const playingAudios: AudioType[] = game.inCheck()
       ? ['moveCheck']
       : ['castle'];
+    if (
+      game.inCheckmate() ||
+      game.inDraw() ||
+      game.inStalemate() ||
+      game.inThreefoldRepetition() ||
+      game.insufficientMaterial()
+    ) {
+      playingAudios.push('end');
+    }
     dispatch(setPlayingAudios(playingAudios));
     const pos = getSquarePosition(move.to);
     const rookPos = {
@@ -421,6 +466,15 @@ export const promote =
     const playingAudios: AudioType[] = game.inCheck()
       ? ['moveCheck']
       : ['promote'];
+    if (
+      game.inCheckmate() ||
+      game.inDraw() ||
+      game.inStalemate() ||
+      game.inThreefoldRepetition() ||
+      game.insufficientMaterial()
+    ) {
+      playingAudios.push('end');
+    }
     dispatch(setPlayingAudios(playingAudios));
     const { focusedPieceId, pieces } = getState().gameStore;
     dispatch(hidePromotionModalBox());

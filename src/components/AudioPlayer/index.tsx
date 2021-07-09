@@ -12,19 +12,45 @@ const AudioPlayer: React.FC = () => {
   const dispatch = useAppDispatch();
 
   useEffect(() => {
-    playingAudios.forEach((playingAudio) => {
-      const audio = audioRefs.current.get(playingAudio);
-      if (audio) {
-        audio.play().catch((err) => {
+    (async () => {
+      const audio1 = audioRefs.current.get(playingAudios[0]);
+      const audio2 = audioRefs.current.get(playingAudios[1]);
+      if (audio1) {
+        try {
+          await audio1.play();
+          audio1.addEventListener(
+            'ended',
+            async () => {
+              if (audio2) {
+                try {
+                  await audio2.play();
+                  audio2.addEventListener(
+                    'ended',
+                    function () {
+                      dispatch(setPlayingAudios([]));
+                    },
+                    { once: true }
+                  );
+                } catch (err) {
+                  if (err.name === 'NotAllowedError') {
+                    console.log(
+                      "Opps audio can't be played right after page loads."
+                    );
+                  }
+                }
+              } else {
+                dispatch(setPlayingAudios([]));
+              }
+            },
+            { once: true }
+          );
+        } catch (err) {
           if (err.name === 'NotAllowedError') {
             console.log("Opps audio can't be played right after page loads.");
           }
-        });
-        audio.onended = function () {
-          dispatch(setPlayingAudios([]));
-        };
+        }
       }
-    });
+    })();
   }, [playingAudios, dispatch]);
 
   return (

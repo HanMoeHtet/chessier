@@ -12,7 +12,6 @@ import PromotionModalBox from '../PromotionModalBox';
 import { back } from 'src/store/historyStore/historySlice';
 import Highlight from '../Highlight';
 import { mark, move } from 'src/store/gameStore/gameSlice';
-import AudioPlayer from '../AudioPlayer';
 
 const Board: React.FC = () => {
   const { pieces, perspective, highlights, hints, focusedPieceId } =
@@ -76,7 +75,6 @@ const Board: React.FC = () => {
       {renderPieces()}
       {renderHints()}
       {renderHighlights()}
-      <AudioPlayer />
       <PromotionModalBox />
     </div>
   );

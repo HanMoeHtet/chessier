@@ -1,6 +1,5 @@
 import { Move } from 'chess.ts';
 import React from 'react';
-import game from 'src/services/game.service';
 import {
   capture,
   enPassant,

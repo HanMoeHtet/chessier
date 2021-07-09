@@ -1,13 +1,14 @@
 import firebase from 'firebase/app';
 import 'firebase/auth';
+import 'firebase/firestore';
 
 const config = {
-  apiKey: 'AIzaSyA-W-fUWUz0NEc7OTZ7WMcGbmvDiiqlNvI',
+  apiKey: process.env.REACT_APP_FIREBASE_API_KEY,
   authDomain: 'chessier.firebaseapp.com',
   projectId: 'chessier',
   storageBucket: 'chessier.appspot.com',
   messagingSenderId: '847062780012',
-  appId: '1:847062780012:web:77773e6f51bfe6d5d97049',
+  appId: process.env.REACT_APP_FIREBASE_APP_ID,
   measurementId: 'G-RF3538CC0P',
 };
 

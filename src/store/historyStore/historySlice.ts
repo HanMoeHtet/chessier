@@ -6,8 +6,8 @@ import {
   setHighlights,
   setPieces,
   setPlayingAudios,
+  game,
 } from '../gameStore/gameSlice';
-import game from 'src/services/game.service';
 import { getInitialPieces, getSquarePosition } from 'src/utils/helpers';
 import { Move } from 'chess.ts';
 

@@ -1,5 +1,5 @@
 import { Chess } from 'chess.ts';
 
-const game = new Chess();
-
-export default game;
+export const createNewGame = () => {
+  return new Chess();
+};

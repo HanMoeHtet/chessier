@@ -1,4 +1,4 @@
-import game from 'src/services/game.service';
+import { createNewGame } from 'src/services/game.service';
 import { Piece, Position } from 'src/types';
 import { BOARD_SIZE, SQUARE_WIDTH } from './constants';
 
@@ -36,21 +36,23 @@ export const getRookId = (pos: Position): number => {
 export const getInitialPieces = (): Piece[] => {
   const pieces: Piece[] = [];
   let id = 0;
-  game.board().forEach((rank, row) => {
-    rank.forEach((square, col) => {
-      if (square) {
-        if (square.type === 'r') {
-          rookIds.set(row * 8 + col, id);
+  createNewGame()
+    .board()
+    .forEach((rank, row) => {
+      rank.forEach((square, col) => {
+        if (square) {
+          if (square.type === 'r') {
+            rookIds.set(row * 8 + col, id);
+          }
+          pieces.push({
+            ...square,
+            id,
+            pos: { row, col },
+          });
+          id++;
         }
-        pieces.push({
-          ...square,
-          id,
-          pos: { row, col },
-        });
-        id++;
-      }
+      });
     });
-  });
   return pieces;
 };
 

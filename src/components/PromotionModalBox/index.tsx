@@ -9,7 +9,6 @@ import {
   setPromotionData,
 } from 'src/store/gameStore/gameSlice';
 import { PieceSymbol } from 'chess.ts';
-import game from 'src/services/game.service';
 import { getSquarePosition } from 'src/utils/helpers';
 
 const PromotionModalBox: React.FC = () => {
@@ -25,8 +24,6 @@ const PromotionModalBox: React.FC = () => {
   const pos = getSquarePosition(move.to);
 
   const onPieceClicked = (pieceName: PieceSymbol) => {
-    game.move(move);
-    dispatch(setPlayingAudios(game.inCheck() ? ['moveCheck'] : ['promote']));
     dispatch(promote(pieceIds, move, pieceName));
   };
 

@@ -1,6 +1,6 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { Move, PieceSymbol } from 'chess.ts';
-import game from 'src/services/game.service';
+import { createNewGame } from 'src/services/game.service';
 import {
   AudioType,
   Color,
@@ -18,7 +18,13 @@ import {
   getSquarePosition,
 } from 'src/utils/helpers';
 import { AppThunk } from '..';
-import { addToHistory } from '../historyStore/historySlice';
+import {
+  addToHistory,
+  setCurrentIndex,
+  setHistory,
+} from '../historyStore/historySlice';
+
+export let game = createNewGame();
 
 const initialState: GameState = {
   pieces: getInitialPieces(),
@@ -36,6 +42,9 @@ export const gameSlice = createSlice({
   name: 'game',
   initialState,
   reducers: {
+    setGameState(state, action: PayloadAction<GameState>) {
+      return action.payload;
+    },
     setFocusedPieceId(state, action: PayloadAction<number | null>) {
       state.focusedPieceId = action.payload;
     },
@@ -70,6 +79,7 @@ export const gameSlice = createSlice({
 });
 
 export const {
+  setGameState,
   setFocusedPieceId,
   setHints,
   setHighlights,
@@ -80,6 +90,23 @@ export const {
   setPlayingAudios,
   setAnimatingPieceIds,
 } = gameSlice.actions;
+
+export const start = (): AppThunk => (dispatch) => {
+  game = createNewGame();
+  const state = initialState;
+  dispatch(setGameState(state));
+  dispatch(setCurrentIndex(0));
+  dispatch(
+    setHistory([
+      {
+        pieces: getInitialPieces(),
+        move: null,
+        animatingPieceIds: [],
+        playingAudios: [],
+      },
+    ])
+  );
+};
 
 export const focus =
   (pieceId: number, pos: Position): AppThunk =>

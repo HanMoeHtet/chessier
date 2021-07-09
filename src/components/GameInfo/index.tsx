@@ -1,8 +1,15 @@
 import React from 'react';
+import { useHistory } from 'react-router-dom';
 import { useAppSelector } from 'src/store/hooks';
 
 const GameInfo: React.FC = () => {
+  const history = useHistory();
+
   const user = useAppSelector((state) => state.authStore.user!);
+
+  const resign = () => {
+    history.push('/home');
+  };
 
   return (
     <div className="flex flex-col justify-evenly h-full">
@@ -73,7 +80,10 @@ const GameInfo: React.FC = () => {
             <button className="mb-4 w-36 bg-gray-500 hover:bg-gray-400 text-white font-bold py-2 px-4 border-b-4 border-gray-700 hover:border-gray-500 rounded">
               Offer a draw
             </button>
-            <button className="w-36 bg-red-500 hover:bg-red-400 text-white font-bold py-2 px-4 border-b-4 border-red-700 hover:border-red-500 rounded">
+            <button
+              onClick={resign}
+              className="w-36 bg-red-500 hover:bg-red-400 text-white font-bold py-2 px-4 border-b-4 border-red-700 hover:border-red-500 rounded"
+            >
               Resign
             </button>
           </div>

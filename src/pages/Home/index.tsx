@@ -1,16 +1,20 @@
 import React from 'react';
-import { useAppSelector } from 'src/store/hooks';
+import { useAppDispatch, useAppSelector } from 'src/store/hooks';
 import { signOut } from 'src/services/firebase.service';
 import { useHistory } from 'react-router';
 import { Link } from 'react-router-dom';
 import Logo from 'src/components/utils/Logo';
+import { start } from 'src/store/gameStore/gameSlice';
 
 const Home: React.FC = () => {
   const user = useAppSelector((state) => state.authStore.user!);
 
+  const dispatch = useAppDispatch();
+
   const history = useHistory();
 
   const newGame = () => {
+    dispatch(start());
     history.push('play/online');
   };
 

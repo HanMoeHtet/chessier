@@ -12,6 +12,7 @@ import firebase from 'src/services/firebase.service';
 firebase.auth().onAuthStateChanged((user) => {
   if (!user) {
     store.dispatch(setIsLoading(false));
+    store.dispatch(setUser(null));
     return;
   }
   const { displayName, email, phoneNumber, uid, photoURL, providerId } = user;

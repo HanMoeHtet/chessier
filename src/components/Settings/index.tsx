@@ -52,19 +52,7 @@ const Settings: React.FC = () => {
             </div>
           </div>
         </div>
-        <div className="row-span-2">
-          <Divider />
-          <div className="p-10 flex items-center h-full">
-            <div className="flex items-center flex-col">
-              <button className="mb-4 w-36 bg-gray-500 hover:bg-gray-400 text-white font-bold py-2 px-4 border-b-4 border-gray-700 hover:border-gray-500 rounded">
-                Offer a draw
-              </button>
-              <button className="w-36 bg-red-500 hover:bg-red-400 text-white font-bold py-2 px-4 border-b-4 border-red-700 hover:border-red-500 rounded">
-                Resign
-              </button>
-            </div>
-          </div>
-        </div>
+        <div className="row-span-2"></div>
       </div>
     </div>
   );

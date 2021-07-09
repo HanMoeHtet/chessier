@@ -24,7 +24,7 @@ export const setUpUI = (id: string) => {
       },
       firebase.auth.GoogleAuthProvider.PROVIDER_ID,
     ],
-    signInSuccessUrl: '/',
+    signInSuccessUrl: '/home',
     signInFlow: 'popup',
     tosUrl: '/terms',
     privacyPolicyUrl: '/policies',

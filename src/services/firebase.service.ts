@@ -13,4 +13,8 @@ const config = {
 
 const app = firebase.initializeApp(config, 'chessier');
 
+export const signOut = () => {
+  app.auth().signOut();
+};
+
 export default app;

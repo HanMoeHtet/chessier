@@ -63,16 +63,20 @@ export interface GameHistory {
 
 export type Provider = 'google' | 'facebook' | 'github';
 
-export interface User {
-  displayName: string | null;
+export interface User extends UserData {
   email: string | null;
   phoneNumber: string | null;
-  photoURL: string | null;
   providerId: string;
-  uid: string;
 }
 
 export interface AuthState {
   user: User | null;
   isLoading: boolean;
+}
+
+export interface UserData {
+  uid: string;
+  rating: number;
+  photoURL: string | null;
+  displayName: string;
 }

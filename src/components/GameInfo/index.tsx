@@ -18,16 +18,14 @@ const GameInfo: React.FC = () => {
               className="border mr-3"
               src={
                 user.photoURL ||
-                `https://ui-avatars.com/api/?name=${
-                  user.displayName || 'Anonymous player'
-                }`
+                `https://ui-avatars.com/api/?name=${user.displayName}`
               }
               width="30px"
               height="30px"
-              alt={user.displayName || 'Anonymous player'}
+              alt={user.displayName}
             />
-            <p className="mr-1">{user.displayName || 'Anonymous player'}</p>
-            <p>({2300})</p>
+            <p className="mr-1">{user.displayName}</p>
+            <p>({user.rating})</p>
           </a>
         </div>
         <p className="flex justify-center text-4xl my-3">VS</p>
@@ -41,16 +39,14 @@ const GameInfo: React.FC = () => {
               className="border mr-3"
               src={
                 user.photoURL ||
-                `https://ui-avatars.com/api/?name=${
-                  user.displayName || 'Anonymous player'
-                }`
+                `https://ui-avatars.com/api/?name=${user.displayName}`
               }
               width="30px"
               height="30px"
-              alt={user.displayName || 'Anonymous player'}
+              alt={user.displayName}
             />
-            <p className="mr-1">{user.displayName || 'Anonymous player'}</p>
-            <p>({2300})</p>
+            <p className="mr-1">{user.displayName}</p>
+            <p>({user.rating})</p>
           </a>
           <p className="ml-4 mt-2 text-xs">White</p>
         </div>

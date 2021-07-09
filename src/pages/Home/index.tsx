@@ -28,18 +28,14 @@ const Home: React.FC = () => {
               className="border"
               src={
                 user.photoURL ||
-                `https://ui-avatars.com/api/?name=${
-                  user.displayName || 'Anonymous player'
-                }`
+                `https://ui-avatars.com/api/?name=${user.displayName}`
               }
               width="120px"
               height="120px"
               alt="Avatar"
             />
           </div>
-          <p className="text-white text-4xl">
-            {user.displayName || 'Anonymous player'}
-          </p>
+          <p className="text-white text-4xl">{user.displayName}</p>
         </div>
         <div className="flex flex-col justify-center items-center bg-gray-800 px-10 py-5 rounded-lg">
           <button

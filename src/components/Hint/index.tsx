@@ -1,15 +1,5 @@
-import { Move } from 'chess.ts';
 import React from 'react';
-import {
-  capture,
-  enPassant,
-  kingSideCastle,
-  move as gameMove,
-  queenSideCastle,
-  setAnimatingPieceIds,
-  setPlayingAudios,
-  showPromotionModalBox,
-} from 'src/store/gameStore/gameSlice';
+import { makeMove } from 'src/store/gameStore/gameSlice';
 import { useAppDispatch } from 'src/store/hooks';
 import { Hint as HintType } from 'src/types';
 import { SQUARE_WIDTH } from 'src/utils/constants';
@@ -24,27 +14,7 @@ const Hint: React.FC<Props> = ({ move, pieceIds }) => {
   const dispatch = useAppDispatch();
 
   const handleClick = () => {
-    switch (move.flags) {
-      case 'e':
-        dispatch(enPassant(pieceIds, move));
-        break;
-      case 'c':
-        dispatch(capture(pieceIds, move));
-        break;
-      case 'cp':
-      case 'np':
-        dispatch(showPromotionModalBox(pieceIds, move));
-        break;
-      case 'k':
-        dispatch(kingSideCastle(pieceIds, move));
-        break;
-      case 'q':
-        dispatch(queenSideCastle(pieceIds, move));
-        break;
-      default:
-        dispatch(gameMove(pieceIds, move));
-        break;
-    }
+    dispatch(makeMove(pieceIds, move));
   };
 
   return (

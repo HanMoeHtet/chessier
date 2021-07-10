@@ -2,8 +2,20 @@ import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { Move, PieceSymbol } from 'chess.ts';
 import { createNewGame } from 'src/services/game.service';
 import {
+  createNewGame as createGame,
+  watchGame,
+  addGameMove,
+  addWaitingRoom,
+  watchWaitingRoom,
+  unsbuscribeWaitingRoom,
+  findInWaitingRooms,
+  updateWaitingRoom,
+  deleteWaitingRoom,
+} from 'src/services/firestore.servie';
+import {
   AudioType,
   Color,
+  GameData,
   GameState,
   Highlight,
   Hint,
@@ -27,6 +39,7 @@ import {
 export let game = createNewGame();
 
 const initialState: GameState = {
+  id: null,
   pieces: getInitialPieces(),
   focusedPieceId: null,
   hints: [],
@@ -36,6 +49,7 @@ const initialState: GameState = {
   perspective: 'w',
   animatingPieceIds: [],
   playingAudios: [],
+  player: null,
 };
 
 export const gameSlice = createSlice({
@@ -75,6 +89,12 @@ export const gameSlice = createSlice({
     setAnimatingPieceIds(state, action: PayloadAction<number[]>) {
       state.animatingPieceIds = action.payload;
     },
+    setGameId(state, action: PayloadAction<string>) {
+      state.id = action.payload;
+    },
+    setPlayer(state, action: PayloadAction<'w' | 'b' | null>) {
+      state.player = action.payload;
+    },
   },
 });
 
@@ -89,29 +109,88 @@ export const {
   setPerspective,
   setPlayingAudios,
   setAnimatingPieceIds,
+  setGameId,
+  setPlayer,
 } = gameSlice.actions;
 
-export const start = (): AppThunk => (dispatch) => {
-  game = createNewGame();
-  const state = initialState;
-  dispatch(setGameState(state));
-  dispatch(setCurrentIndex(0));
-  dispatch(
-    setHistory([
-      {
-        pieces: getInitialPieces(),
-        move: null,
-        animatingPieceIds: [],
-        playingAudios: [],
-      },
-    ])
-  );
-};
+export const findMatch = (): AppThunk => async (dispatch, getState) =>
+  new Promise<void>(async (resolve) => {
+    const playerId = getState().authStore.user?.uid!;
+    const room = await findInWaitingRooms((data) => true);
+    if (room) {
+      const opponentId = room.playerId;
+      const isPlayerWhite = Math.floor(Math.random() * 2) === 0;
+      const gameData = {
+        black: isPlayerWhite ? opponentId : playerId,
+        white: isPlayerWhite ? playerId : opponentId,
+        history: [],
+      };
+      const gameId = await createGame(gameData);
+      updateWaitingRoom(room.id, { ...gameData, gameId });
+      dispatch(start({ ...gameData, id: gameId }));
+      resolve();
+    } else {
+      const roomId = await addWaitingRoom(playerId);
+      watchWaitingRoom(roomId, async (roomData) => {
+        if (!roomData.gameId) return;
+        console.log(roomData, 'found');
+        const { black, white, history, gameId: id } = roomData;
+        dispatch(start({ black, white, history, id }));
+        unsbuscribeWaitingRoom(roomId);
+        deleteWaitingRoom(roomId);
+        resolve();
+      });
+    }
+  });
+
+export const start =
+  (gameData: GameData): AppThunk =>
+  async (dispatch, getState) => {
+    game = createNewGame();
+    // TODO: This is a faked version. Replace it later.
+    // const opponent =
+    //   getState().authStore.user?.uid! === '9Ki7pMdmMgbXYb6oiJbwnzgENRq1'
+    //     ? '2cmyr26aOTYD54Xb4OMq8iS4vIU2'
+    //     : '9Ki7pMdmMgbXYb6oiJbwnzgENRq1';
+    // const gameData: GameData = {
+    //   black: opponentId,
+    //   white: getState().authStore.user?.uid!,
+    //   history: [],
+    // };
+    watchGame(gameData.id, (data: GameData) => {
+      if (data.history.length === 0) return;
+      const { move, pieceIds } = data.history[data.history.length - 1];
+      dispatch(_makeMove(pieceIds, move));
+    });
+    const state: GameState = {
+      ...initialState,
+      player: gameData.white === getState().authStore.user?.uid! ? 'w' : 'b',
+      id: gameData.id,
+      perspective:
+        gameData.white === getState().authStore.user?.uid! ? 'w' : 'b',
+    };
+    dispatch(setGameState(state));
+    dispatch(setCurrentIndex(0));
+    dispatch(
+      setHistory([
+        {
+          pieces: getInitialPieces(),
+          move: null,
+          animatingPieceIds: [],
+          playingAudios: [],
+        },
+      ])
+    );
+  };
 
 export const focus =
   (pieceId: number, pos: Position): AppThunk =>
   async (dispatch, getState) => {
-    const { highlights } = getState().gameStore;
+    const { highlights, turn, player } = getState().gameStore;
+    if (turn !== player) {
+      dispatch(cancel());
+      return;
+    }
     dispatch(setFocusedPieceId(pieceId));
     dispatch(
       setHighlights({ ...highlights, marked: [{ pos, color: 'blue' }] })
@@ -161,16 +240,51 @@ export const cancel = (): AppThunk => (dispatch, getState) => {
   );
 };
 
+export const makeMove =
+  (pieceIds: number[], gameMove: Move): AppThunk =>
+  (dispatch, getState) => {
+    addGameMove(getState().gameStore.id || 'test', {
+      pieceIds,
+      move: JSON.parse(JSON.stringify(gameMove)),
+    });
+  };
+
+export const _makeMove =
+  (pieceIds: number[], gameMove: Move): AppThunk =>
+  (dispatch) => {
+    switch (gameMove.flags) {
+      case 'e':
+        dispatch(enPassant(pieceIds, gameMove));
+        break;
+      case 'c':
+        dispatch(capture(pieceIds, gameMove));
+        break;
+      case 'cp':
+      case 'np':
+        dispatch(showPromotionModalBox(pieceIds, gameMove));
+        break;
+      case 'k':
+        dispatch(kingSideCastle(pieceIds, gameMove));
+        break;
+      case 'q':
+        dispatch(queenSideCastle(pieceIds, gameMove));
+        break;
+      default:
+        dispatch(move(pieceIds, gameMove));
+        break;
+    }
+  };
+
 export const move =
   (pieceIds: number[], move: Move): AppThunk =>
   async (dispatch, getState) => {
-    const { focusedPieceId, pieces, turn } = getState().gameStore;
+    const { focusedPieceId, pieces, turn, player } = getState().gameStore;
     game.move(move);
     dispatch(setAnimatingPieceIds(pieceIds));
     // TODO: This is a mocked version. Replace it when player system is implemented.
     const playingAudios: AudioType[] = game.inCheck()
       ? ['moveCheck']
-      : turn === 'w'
+      : turn === player
       ? ['moveSelf']
       : ['moveOpponent'];
     if (
@@ -185,7 +299,7 @@ export const move =
     dispatch(setPlayingAudios(playingAudios));
     const pos = getSquarePosition(move.to);
     let _pieces = pieces.map((piece) => {
-      if (piece.id === focusedPieceId) {
+      if (piece.id === pieceIds[0]) {
         return {
           ...piece,
           pos,
@@ -237,7 +351,7 @@ export const capture =
     const { focusedPieceId, pieces } = getState().gameStore;
     const pos = getSquarePosition(move.to);
     let _pieces = pieces.map((piece) => {
-      if (piece.id === focusedPieceId) {
+      if (piece.id === pieceIds[0]) {
         return {
           ...piece,
           pos,
@@ -251,8 +365,7 @@ export const capture =
     setTimeout(() => {
       _pieces = _pieces.filter((piece) => {
         return (
-          generateSquareName(piece.pos) !== move.to ||
-          piece.id === focusedPieceId
+          generateSquareName(piece.pos) !== move.to || piece.id === pieceIds[0]
         );
       });
       dispatch(setPieces(_pieces));
@@ -298,7 +411,7 @@ export const enPassant =
     const { focusedPieceId, pieces } = getState().gameStore;
     const pos = getSquarePosition(move.to);
     let _pieces = pieces.map((piece) => {
-      if (piece.id === focusedPieceId) {
+      if (piece.id === pieceIds[0]) {
         return {
           ...piece,
           pos,
@@ -317,7 +430,7 @@ export const enPassant =
         };
         return (
           generateSquareName(piece.pos) !== generateSquareName(targetPos) ||
-          piece.id === focusedPieceId
+          piece.id === pieceIds[0]
         );
       });
       dispatch(setPieces(_pieces));
@@ -374,7 +487,7 @@ export const kingSideCastle =
       },
     };
     let _pieces = pieces.map((piece) => {
-      if (piece.id === focusedPieceId) {
+      if (piece.id === pieceIds[0]) {
         return {
           ...piece,
           pos,
@@ -444,7 +557,7 @@ export const queenSideCastle =
       },
     };
     let _pieces = pieces.map((piece) => {
-      if (piece.id === focusedPieceId) {
+      if (piece.id === pieceIds[0]) {
         return {
           ...piece,
           pos,
@@ -508,7 +621,7 @@ export const promote =
     const pos = getSquarePosition(move.to);
     console.log(pos);
     let _pieces = pieces.map((piece) => {
-      if (piece.id === focusedPieceId) {
+      if (piece.id === pieceIds[0]) {
         return {
           ...piece,
           pos,
@@ -523,11 +636,11 @@ export const promote =
         .filter((piece) => {
           return (
             generateSquareName(piece.pos) !== move.to ||
-            piece.id === focusedPieceId
+            piece.id === pieceIds[0]
           );
         })
         .map((piece) => {
-          if (piece.id === focusedPieceId) {
+          if (piece.id === pieceIds[0]) {
             return { ...piece, type: pieceName };
           }
           return piece;

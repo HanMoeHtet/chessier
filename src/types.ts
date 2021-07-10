@@ -38,6 +38,7 @@ export interface Hint {
 }
 
 export interface GameState {
+  id: string | null;
   focusedPieceId: number | null;
   pieces: Piece[];
   hints: Hint[];
@@ -47,6 +48,7 @@ export interface GameState {
   perspective: 'w' | 'b';
   animatingPieceIds: number[];
   playingAudios: AudioType[];
+  player: 'w' | 'b' | null;
 }
 
 export interface History {
@@ -79,4 +81,11 @@ export interface UserData {
   rating: number;
   photoURL: string | null;
   displayName: string;
+}
+
+export interface GameData {
+  white: string;
+  black: string;
+  history: { pieceIds: number[]; move: Move }[];
+  id: string;
 }

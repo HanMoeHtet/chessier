@@ -4,7 +4,7 @@ import { signOut } from 'src/services/firebase.service';
 import { useHistory } from 'react-router';
 import { Link } from 'react-router-dom';
 import Logo from 'src/components/utils/Logo';
-import { start } from 'src/store/gameStore/gameSlice';
+import { findMatch } from 'src/store/gameStore/gameSlice';
 
 const Home: React.FC = () => {
   const user = useAppSelector((state) => state.authStore.user!);
@@ -13,8 +13,8 @@ const Home: React.FC = () => {
 
   const history = useHistory();
 
-  const newGame = () => {
-    dispatch(start());
+  const newGame = async () => {
+    await dispatch(findMatch());
     history.push('play/online');
   };
 

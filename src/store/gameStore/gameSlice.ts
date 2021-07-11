@@ -11,19 +11,24 @@ import {
   findInWaitingRooms,
   updateWaitingRoom,
   deleteWaitingRoom,
+  addOrRetriveUser,
+  updateUser,
 } from 'src/services/firestore.servie';
 import {
   AudioType,
   Color,
   GameData,
+  GameResult,
   GameState,
   Highlight,
   Hint,
   Piece,
   Position,
   PromotionData,
+  RatingSystem,
 } from 'src/types';
 import {
+  calculateRatingSystem,
   generateSquareName,
   getInitialPieces,
   getRookId,
@@ -40,6 +45,7 @@ export let game = createNewGame();
 
 const initialState: GameState = {
   id: null,
+  roomId: null,
   pieces: getInitialPieces(),
   focusedPieceId: null,
   hints: [],
@@ -50,6 +56,7 @@ const initialState: GameState = {
   animatingPieceIds: [],
   playingAudios: [],
   player: null,
+  opponent: null,
 };
 
 export const gameSlice = createSlice({
@@ -95,6 +102,21 @@ export const gameSlice = createSlice({
     setPlayer(state, action: PayloadAction<'w' | 'b' | null>) {
       state.player = action.payload;
     },
+    setRoomId(state, action: PayloadAction<string | null>) {
+      state.roomId = action.payload;
+    },
+    setIsDrawBeingOffered(state, action: PayloadAction<boolean>) {
+      state.isDrawBeingOffered = action.payload;
+    },
+    setWinner(state, action: PayloadAction<string | undefined>) {
+      state.winner = action.payload;
+    },
+    setRatingSystem(state, action: PayloadAction<RatingSystem | undefined>) {
+      state.ratingSystem = action.payload;
+    },
+    setResult(state, action: PayloadAction<GameResult | undefined>) {
+      state.result = action.payload;
+    },
   },
 });
 
@@ -111,6 +133,10 @@ export const {
   setAnimatingPieceIds,
   setGameId,
   setPlayer,
+  setRoomId,
+  setIsDrawBeingOffered,
+  setWinner,
+  setResult,
 } = gameSlice.actions;
 
 export const findMatch = (): AppThunk => async (dispatch, getState) =>
@@ -127,59 +153,118 @@ export const findMatch = (): AppThunk => async (dispatch, getState) =>
       };
       const gameId = await createGame(gameData);
       updateWaitingRoom(room.id, { ...gameData, gameId });
-      dispatch(start({ ...gameData, id: gameId }));
+      await dispatch(start({ ...gameData, id: gameId }));
       resolve();
     } else {
       const roomId = await addWaitingRoom(playerId);
+      dispatch(setRoomId(roomId));
       watchWaitingRoom(roomId, async (roomData) => {
         if (!roomData.gameId) return;
-        console.log(roomData, 'found');
         const { black, white, history, gameId: id } = roomData;
-        dispatch(start({ black, white, history, id }));
         unsbuscribeWaitingRoom(roomId);
         deleteWaitingRoom(roomId);
+        await dispatch(start({ black, white, history, id }));
         resolve();
       });
     }
   });
 
+export const cancelSearch = (): AppThunk => (dispatch, getState) => {
+  const roomId = getState().gameStore.roomId;
+  if (!roomId) return;
+  unsbuscribeWaitingRoom(roomId);
+  deleteWaitingRoom(roomId);
+  setRoomId(null);
+};
+
 export const start =
   (gameData: GameData): AppThunk =>
-  async (dispatch, getState) => {
-    game = createNewGame();
-    // TODO: This is a faked version. Replace it later.
-    // const opponent =
-    //   getState().authStore.user?.uid! === '9Ki7pMdmMgbXYb6oiJbwnzgENRq1'
-    //     ? '2cmyr26aOTYD54Xb4OMq8iS4vIU2'
-    //     : '9Ki7pMdmMgbXYb6oiJbwnzgENRq1';
-    // const gameData: GameData = {
-    //   black: opponentId,
-    //   white: getState().authStore.user?.uid!,
-    //   history: [],
-    // };
-    watchGame(gameData.id, (data: GameData) => {
-      if (data.history.length === 0) return;
-      const { move, pieceIds } = data.history[data.history.length - 1];
-      dispatch(_makeMove(pieceIds, move));
+  async (dispatch, getState) =>
+    new Promise<void>(async (resolve) => {
+      game = createNewGame();
+      const { user } = getState().authStore;
+      const authUserId = user?.uid!;
+      watchGame(gameData.id, (data: GameData) => {
+        const {
+          isResignning,
+          isOfferingDraw,
+          winner,
+          black,
+          white,
+          offerer,
+          isDrawAccepted,
+        } = data;
+        if (isResignning) {
+          // if (winner) dispatch(end(winner));
+        }
+        if (isOfferingDraw) {
+          if (offerer !== authUserId) {
+            dispatch(setIsDrawBeingOffered(true));
+          }
+        }
+        if (isDrawAccepted) {
+        }
+        if (data.history.length === 0) return;
+        const { move, pieceIds } = data.history[data.history.length - 1];
+        dispatch(_makeMove(pieceIds, move));
+      });
+      const opponent = await addOrRetriveUser(
+        gameData.white === authUserId ? gameData.black : gameData.white
+      );
+      const state: GameState = {
+        ...initialState,
+        player: gameData.white === authUserId ? 'w' : 'b',
+        id: gameData.id,
+        perspective: gameData.white === authUserId ? 'w' : 'b',
+        opponent,
+        ratingSystem: calculateRatingSystem(user!.rating, opponent.rating),
+      };
+      dispatch(setGameState(state));
+      dispatch(setCurrentIndex(0));
+      dispatch(
+        setHistory([
+          {
+            pieces: getInitialPieces(),
+            move: null,
+            animatingPieceIds: [],
+            playingAudios: [],
+          },
+        ])
+      );
+      resolve();
     });
-    const state: GameState = {
-      ...initialState,
-      player: gameData.white === getState().authStore.user?.uid! ? 'w' : 'b',
-      id: gameData.id,
-      perspective:
-        gameData.white === getState().authStore.user?.uid! ? 'w' : 'b',
-    };
-    dispatch(setGameState(state));
-    dispatch(setCurrentIndex(0));
+
+export const end =
+  (isWinning?: boolean): AppThunk =>
+  async (dispatch, getState) => {
+    const { user } = getState().authStore;
+    const { win, loss, draw } = getState().gameStore.ratingSystem!;
+    const authUserId = user?.uid!;
+    const opponentId = getState().gameStore.opponent?.uid!;
+    let status: 'win' | 'lose' | 'draw';
+    let difference;
+    const oldRating = user?.rating!;
+    if (isWinning) {
+      dispatch(setWinner(authUserId));
+      status = 'win';
+      difference = win;
+    } else if (isWinning === false) {
+      dispatch(setWinner(opponentId));
+      status = 'lose';
+      difference = loss;
+    } else {
+      dispatch(setWinner());
+      status = 'draw';
+      difference = draw;
+    }
+    await updateUser(authUserId, { rating: oldRating + difference });
     dispatch(
-      setHistory([
-        {
-          pieces: getInitialPieces(),
-          move: null,
-          animatingPieceIds: [],
-          playingAudios: [],
-        },
-      ])
+      setResult({
+        difference,
+        newRating: oldRating + difference,
+        oldRating,
+        status,
+      })
     );
   };
 
@@ -240,10 +325,12 @@ export const cancel = (): AppThunk => (dispatch, getState) => {
   );
 };
 
+export const resign = (): AppThunk => (dispatch, getState) => {};
+
 export const makeMove =
   (pieceIds: number[], gameMove: Move): AppThunk =>
   (dispatch, getState) => {
-    addGameMove(getState().gameStore.id || 'test', {
+    addGameMove(getState().gameStore.id!, {
       pieceIds,
       move: JSON.parse(JSON.stringify(gameMove)),
     });
@@ -281,19 +368,17 @@ export const move =
     const { focusedPieceId, pieces, turn, player } = getState().gameStore;
     game.move(move);
     dispatch(setAnimatingPieceIds(pieceIds));
-    // TODO: This is a mocked version. Replace it when player system is implemented.
     const playingAudios: AudioType[] = game.inCheck()
       ? ['moveCheck']
       : turn === player
       ? ['moveSelf']
       : ['moveOpponent'];
-    if (
-      game.inCheckmate() ||
-      game.inDraw() ||
-      game.inStalemate() ||
-      game.inThreefoldRepetition() ||
-      game.insufficientMaterial()
-    ) {
+    if (game.inCheckmate()) {
+      dispatch(end(game.turn() !== player));
+      playingAudios.push('end');
+    }
+    if (game.inDraw()) {
+      dispatch(end());
       playingAudios.push('end');
     }
     dispatch(setPlayingAudios(playingAudios));

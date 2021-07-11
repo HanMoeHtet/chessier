@@ -39,6 +39,7 @@ export interface Hint {
 
 export interface GameState {
   id: string | null;
+  roomId: string | null;
   focusedPieceId: number | null;
   pieces: Piece[];
   hints: Hint[];
@@ -49,6 +50,11 @@ export interface GameState {
   animatingPieceIds: number[];
   playingAudios: AudioType[];
   player: 'w' | 'b' | null;
+  isDrawBeingOffered?: boolean;
+  ratingSystem?: RatingSystem;
+  winner?: string;
+  opponent: UserData | null;
+  result?: GameResult;
 }
 
 export interface History {
@@ -88,4 +94,22 @@ export interface GameData {
   black: string;
   history: { pieceIds: number[]; move: Move }[];
   id: string;
+  offerer?: string;
+  isResignning?: boolean;
+  isOfferingDraw?: boolean;
+  isDrawAccepted?: boolean;
+  winner?: string;
+}
+
+export interface RatingSystem {
+  win: number;
+  loss: number;
+  draw: number;
+}
+
+export interface GameResult {
+  newRating: number;
+  oldRating: number;
+  status: 'win' | 'lose' | 'draw';
+  difference: number;
 }

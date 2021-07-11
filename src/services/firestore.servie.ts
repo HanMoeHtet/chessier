@@ -5,7 +5,10 @@ const db = app.firestore();
 const games = new Map<string, () => void>();
 let waitingRooms = new Map<string, () => void>();
 
-export const addOrRetriveUser = async (id: string, user: any): Promise<any> => {
+export const addOrRetriveUser = async (
+  id: string,
+  user?: any
+): Promise<any> => {
   let docRef = db.collection('users').doc(id);
   let doc = await docRef.get();
   if (doc.exists) {
@@ -15,6 +18,10 @@ export const addOrRetriveUser = async (id: string, user: any): Promise<any> => {
     await docRef.set(user);
     return user;
   }
+};
+
+export const updateUser = async (id: string, user: any) => {
+  await db.collection('users').doc(id).update(user);
 };
 
 export const findInWaitingRooms = async (
@@ -84,6 +91,10 @@ export const unsubscribeGame = (id: string) => {
     fun();
     games.delete(id);
   }
+};
+
+export const updateGame = async (id: string, data: any) => {
+  await db.collection('games').doc(id).update(data);
 };
 
 export const addGameMove = async (id: string, state: any) => {

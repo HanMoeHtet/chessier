@@ -1,5 +1,5 @@
 import { createNewGame } from 'src/services/game.service';
-import { Piece, Position } from 'src/types';
+import { Piece, Position, RatingSystem } from 'src/types';
 import { BOARD_SIZE, SQUARE_WIDTH } from './constants';
 
 type GenerateSquareNameFunction = (param: Position) => string;
@@ -70,4 +70,33 @@ export const getSquarePosOnBoard = (
   row = Math.floor((mousePos.y - boardPos.y) / SQUARE_WIDTH);
 
   return { row, col };
+};
+
+export const calculateRatingSystem = (
+  playerRating: number,
+  opponentRating: number
+): RatingSystem => {
+  let win = 0,
+    draw = 0,
+    loss = 0;
+
+  if (opponentRating > playerRating) {
+    win = 50 + opponentRating - playerRating;
+    draw = opponentRating - playerRating;
+    loss = 0;
+  } else if (opponentRating === playerRating) {
+    win = 50;
+    draw = 10;
+    loss = -10;
+  } else {
+    win = 20 + playerRating - opponentRating;
+    draw = 0;
+    loss = -20;
+  }
+
+  return {
+    win,
+    draw,
+    loss,
+  };
 };

@@ -9,6 +9,7 @@ import useModal from 'src/composables/useModal';
 import { setPlayingAudios } from 'src/store/gameStore/gameSlice';
 import { useAppDispatch, useAppSelector } from 'src/store/hooks';
 import styles from './index.module.css';
+import { showDrawOfferMessage } from 'src/services/sweet-alert-2.service';
 
 const Game: React.FC = () => {
   const dispatch = useAppDispatch();

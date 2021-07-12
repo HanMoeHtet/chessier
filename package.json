@@ -8,6 +8,7 @@
     "@reduxjs/toolkit": "^1.5.1",
     "@tippyjs/react": "^4.2.5",
     "chess.ts": "^0.16.2",
+    "dotenv": "^8.2.0",
     "firebase": "^8.7.1",
     "firebaseui": "^4.8.0",
     "react": "^17.0.2",
@@ -15,8 +16,8 @@
     "react-redux": "^7.2.0",
     "react-router-dom": "^5.2.0",
     "react-scripts": "4.0.3",
-    "typescript": "~4.1.5",
-    "dotenv": "^8.2.0"
+    "sweetalert2": "^11.0.18",
+    "typescript": "~4.1.5"
   },
   "scripts": {
     "start": "craco start",

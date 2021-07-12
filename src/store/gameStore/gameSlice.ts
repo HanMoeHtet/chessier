@@ -327,6 +327,8 @@ export const cancel = (): AppThunk => (dispatch, getState) => {
 
 export const resign = (): AppThunk => (dispatch, getState) => {};
 
+export const draw = (): AppThunk => (dispatch, getState) => {};
+
 export const makeMove =
   (pieceIds: number[], gameMove: Move): AppThunk =>
   (dispatch, getState) => {

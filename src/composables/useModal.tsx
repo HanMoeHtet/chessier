@@ -5,7 +5,6 @@ const useModal = ({
   isClosedWhenClickedOutside = true,
 }) => {
   const [isShowing, setIsShowing] = useState(initialIsShowing);
-  console.log(isShowing);
 
   const modalRef = useRef<HTMLDivElement>(null);
 
@@ -18,10 +17,8 @@ const useModal = ({
         }
       }
     };
-    console.log('hello');
     window.addEventListener('click', handleOnClick);
     return () => {
-      console.log('bye');
       window.removeEventListener('click', handleOnClick);
     };
   }, [isClosedWhenClickedOutside, modalRef, isShowing]);

@@ -59,11 +59,14 @@ const MoveList: React.FC = () => {
   };
 
   return (
-    <div ref={ref} className={styles.container}>
-      <table className={styles.moveList}>
-        <tbody>{render()}</tbody>
-      </table>
-    </div>
+    <>
+      <h3 className="text-center text-gray-200 text-xl py-4">Moves</h3>
+      <div ref={ref} className={styles.container}>
+        <table className={styles.moveList}>
+          <tbody>{render()}</tbody>
+        </table>
+      </div>
+    </>
   );
 };
 

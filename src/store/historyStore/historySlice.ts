@@ -138,4 +138,12 @@ export const goto =
     );
   };
 
+export const firstMove = (): AppThunk => (dispatch) => {
+  dispatch(goto(1));
+};
+
+export const lastMove = (): AppThunk => (dispatch, getState) => {
+  dispatch(goto(getState().historyStore.history.length - 1));
+};
+
 export default historySlice.reducer;

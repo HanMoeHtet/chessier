@@ -19,7 +19,7 @@ const PlayersInfo: React.FC = () => {
   return (
     <div className="text-white mb-5">
       <div>
-        <p className="ml-16 mb-2 text-xs text-gray-400">
+        <p className="text-center mb-2 text-xs text-gray-400">
           {top === black ? 'Black' : 'White'}
         </p>
         <a
@@ -61,7 +61,7 @@ const PlayersInfo: React.FC = () => {
           <p className="mr-1">{bottom.displayName}</p>
           <p>({bottom.rating})</p>
         </a>
-        <p className="ml-16 mt-2 text-xs text-gray-400">
+        <p className="text-center mt-2 text-xs text-gray-400">
           {bottom === white ? 'White' : 'Black'}
         </p>
       </div>

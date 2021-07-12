@@ -54,7 +54,10 @@ const Home: React.FC = () => {
                 alt="Avatar"
               />
             </div>
-            <p className="text-white text-4xl">{user.displayName}</p>
+            <p className="text-gray-200 text-4xl text-center mb-2">
+              {user.displayName}
+            </p>
+            <p className="text-gray-300 text-xl text-center">({user.rating})</p>
           </div>
           <div className="flex flex-col justify-center items-center bg-gray-800 px-10 py-5 rounded-lg">
             <button

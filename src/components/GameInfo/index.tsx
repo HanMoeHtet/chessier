@@ -1,25 +1,50 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useHistory } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from 'src/store/hooks';
-import { resign as resignGame, draw } from 'src/store/gameStore/gameSlice';
+import {
+  resign as resignGame,
+  offerDraw as offerDrawGame,
+  acceptDraw,
+  declineDraw,
+} from 'src/store/gameStore/gameSlice';
 import PlayersInfo from '../PlayersInfo';
 import RatingSystem from '../RatingSystem';
 import {
+  showDrawOfferSentMessage,
   showConfirmResignation,
-  showDrawOfferMessage,
+  showDrawOfferReceivedMessage,
+  showDrawOfferDeclinedMessage,
 } from 'src/services/sweet-alert-2.service';
 
 const GameInfo: React.FC = () => {
+  const { isDrawBeingOffered, opponent, wasDrawDeclined } = useAppSelector(
+    (state) => state.gameStore
+  );
+
   const history = useHistory();
   const dispatch = useAppDispatch();
 
-  const offerDraw = async () => {
-    const isConfirmed = await showDrawOfferMessage({
-      player: 'Anonymous Player',
-    });
-    if (isConfirmed) {
-      dispatch(draw());
+  useEffect(() => {
+    (async () => {
+      if (isDrawBeingOffered) {
+        const isConfirmed = await showDrawOfferReceivedMessage({
+          player: opponent?.displayName!,
+        });
+        if (isConfirmed) dispatch(acceptDraw());
+        else dispatch(declineDraw());
+      }
+    })();
+  }, [isDrawBeingOffered, dispatch, opponent]);
+
+  useEffect(() => {
+    if (wasDrawDeclined) {
+      showDrawOfferDeclinedMessage({ player: opponent?.displayName! });
     }
+  }, [wasDrawDeclined, opponent]);
+
+  const offerDraw = async () => {
+    await dispatch(offerDrawGame());
+    showDrawOfferSentMessage();
   };
 
   const resign = async () => {
@@ -31,8 +56,8 @@ const GameInfo: React.FC = () => {
 
   return (
     <div className="flex flex-col justify-evenly h-full">
-      {/* <PlayersInfo /> */}
-      {/* <RatingSystem /> */}
+      <PlayersInfo />
+      <RatingSystem />
       <div>
         <div className="p-10 flex items-center h-full">
           <div className="flex w-full justify-center items-center flex-col">

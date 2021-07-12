@@ -13,11 +13,13 @@ import {
   deleteWaitingRoom,
   addOrRetriveUser,
   updateUser,
+  updateGame,
 } from 'src/services/firestore.servie';
 import {
   AudioType,
   Color,
   GameData,
+  GameDataStatus,
   GameResult,
   GameState,
   Highlight,
@@ -117,6 +119,9 @@ export const gameSlice = createSlice({
     setResult(state, action: PayloadAction<GameResult | undefined>) {
       state.result = action.payload;
     },
+    setWasDrawDeclined(state, action: PayloadAction<boolean | undefined>) {
+      state.wasDrawDeclined = action.payload;
+    },
   },
 });
 
@@ -137,6 +142,7 @@ export const {
   setIsDrawBeingOffered,
   setWinner,
   setResult,
+  setWasDrawDeclined,
 } = gameSlice.actions;
 
 export const findMatch = (): AppThunk => async (dispatch, getState) =>
@@ -150,6 +156,7 @@ export const findMatch = (): AppThunk => async (dispatch, getState) =>
         black: isPlayerWhite ? opponentId : playerId,
         white: isPlayerWhite ? playerId : opponentId,
         history: [],
+        status: GameDataStatus.START,
       };
       const gameId = await createGame(gameData);
       updateWaitingRoom(room.id, { ...gameData, gameId });
@@ -163,7 +170,9 @@ export const findMatch = (): AppThunk => async (dispatch, getState) =>
         const { black, white, history, gameId: id } = roomData;
         unsbuscribeWaitingRoom(roomId);
         deleteWaitingRoom(roomId);
-        await dispatch(start({ black, white, history, id }));
+        await dispatch(
+          start({ black, white, history, id, status: GameDataStatus.START })
+        );
         resolve();
       });
     }
@@ -185,28 +194,34 @@ export const start =
       const { user } = getState().authStore;
       const authUserId = user?.uid!;
       watchGame(gameData.id, (data: GameData) => {
-        const {
-          isResignning,
-          isOfferingDraw,
-          winner,
-          black,
-          white,
-          offerer,
-          isDrawAccepted,
-        } = data;
-        if (isResignning) {
-          // if (winner) dispatch(end(winner));
+        const { status, winner, black, white, offerer } = data;
+        switch (status) {
+          case GameDataStatus.OFFERED_DRAW:
+            if (offerer !== authUserId) {
+              dispatch(setIsDrawBeingOffered(true));
+            }
+            break;
+          case GameDataStatus.DRAW_ACCEPTED:
+            dispatch(end());
+            break;
+          case GameDataStatus.DRAW_DECLINED:
+            if (offerer === authUserId) {
+              dispatch(setWasDrawDeclined(true));
+            }
+            break;
+          case GameDataStatus.RESIGNNED:
+            dispatch(end(authUserId === winner));
+            dispatch(setPlayingAudios(['end']));
+            break;
+          case GameDataStatus.MADE_MOVE:
+            const { move, pieceIds } = data.history[data.history.length - 1];
+            dispatch(_makeMove(pieceIds, move));
+            break;
+          case GameDataStatus.START:
+            break;
+          default:
+            throw Error('Invalid Data');
         }
-        if (isOfferingDraw) {
-          if (offerer !== authUserId) {
-            dispatch(setIsDrawBeingOffered(true));
-          }
-        }
-        if (isDrawAccepted) {
-        }
-        if (data.history.length === 0) return;
-        const { move, pieceIds } = data.history[data.history.length - 1];
-        dispatch(_makeMove(pieceIds, move));
       });
       const opponent = await addOrRetriveUser(
         gameData.white === authUserId ? gameData.black : gameData.white
@@ -325,9 +340,34 @@ export const cancel = (): AppThunk => (dispatch, getState) => {
   );
 };
 
-export const resign = (): AppThunk => (dispatch, getState) => {};
+export const resign = (): AppThunk => async (dispatch, getState) => {
+  const { id, opponent } = getState().gameStore;
+  await updateGame(id!, {
+    status: GameDataStatus.RESIGNNED,
+    winner: opponent?.uid,
+  });
+};
 
-export const draw = (): AppThunk => (dispatch, getState) => {};
+export const offerDraw = (): AppThunk => async (dispatch, getState) => {
+  const { id } = getState().gameStore;
+  const { user } = getState().authStore;
+  await updateGame(id!, {
+    status: GameDataStatus.OFFERED_DRAW,
+    offerer: user?.uid,
+  });
+};
+
+export const acceptDraw = (): AppThunk => async (dispatch, getState) => {
+  const { id } = getState().gameStore;
+  dispatch(setIsDrawBeingOffered(false));
+  updateGame(id!, { status: GameDataStatus.DRAW_ACCEPTED });
+};
+
+export const declineDraw = (): AppThunk => async (dispatch, getState) => {
+  const { id } = getState().gameStore;
+  dispatch(setIsDrawBeingOffered(false));
+  updateGame(id!, { status: GameDataStatus.DRAW_DECLINED });
+};
 
 export const makeMove =
   (pieceIds: number[], gameMove: Move): AppThunk =>

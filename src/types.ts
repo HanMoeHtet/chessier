@@ -55,6 +55,7 @@ export interface GameState {
   winner?: string;
   opponent: UserData | null;
   result?: GameResult;
+  wasDrawDeclined?: boolean;
 }
 
 export interface History {
@@ -89,15 +90,23 @@ export interface UserData {
   displayName: string;
 }
 
+export enum GameDataStatus {
+  START,
+  MADE_MOVE,
+  RESIGNNED,
+  OFFERED_DRAW,
+  DRAW_ACCEPTED,
+  DRAW_DECLINED,
+  END,
+}
+
 export interface GameData {
   white: string;
   black: string;
   history: { pieceIds: number[]; move: Move }[];
   id: string;
-  offerer?: string;
-  isResignning?: boolean;
-  isOfferingDraw?: boolean;
-  isDrawAccepted?: boolean;
+  offerer?: string | null;
+  status: GameDataStatus;
   winner?: string;
 }
 

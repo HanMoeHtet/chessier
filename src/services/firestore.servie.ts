@@ -1,5 +1,6 @@
 import app from 'src/services/firebase.service';
 import firebase from 'firebase/app';
+import { GameDataStatus } from 'src/types';
 
 const db = app.firestore();
 const games = new Map<string, () => void>();
@@ -102,6 +103,7 @@ export const addGameMove = async (id: string, state: any) => {
     .collection('games')
     .doc(id)
     .update({
+      status: GameDataStatus.MADE_MOVE,
       history: firebase.firestore.FieldValue.arrayUnion(state),
     });
 };

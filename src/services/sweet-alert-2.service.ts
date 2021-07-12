@@ -15,15 +15,33 @@ const toast = Swal.mixin({
   },
 });
 
-interface DrawOfferMessageOptions {
+interface DrawOfferSentOptions {
+  width?: string | number;
+}
+
+export const showDrawOfferSentMessage = async ({
+  width = 300,
+}: DrawOfferSentOptions = {}) => {
+  await toast.fire({
+    title: `Draw offer sent`,
+    icon: 'success',
+    showCancelButton: false,
+    showConfirmButton: false,
+    showCloseButton: true,
+    timer: 2000,
+    width,
+  });
+};
+
+interface DrawOfferMessageReceivedOptions {
   player: string;
   width?: string | number;
 }
 
-export const showDrawOfferMessage = async ({
+export const showDrawOfferReceivedMessage = async ({
   player,
   width = 300,
-}: DrawOfferMessageOptions) => {
+}: DrawOfferMessageReceivedOptions) => {
   const result = await toast.fire({
     title: `${player} offered you a draw`,
     confirmButtonText: 'Accept',
@@ -31,6 +49,26 @@ export const showDrawOfferMessage = async ({
     width,
   });
   return result.isConfirmed;
+};
+
+interface DrawOfferDeclinedMessageOptions {
+  player: string;
+  width?: string | number;
+}
+
+export const showDrawOfferDeclinedMessage = async ({
+  player,
+  width = 300,
+}: DrawOfferDeclinedMessageOptions) => {
+  await toast.fire({
+    title: `${player} declined your draw offer`,
+    icon: 'info',
+    showCancelButton: false,
+    showConfirmButton: false,
+    showCloseButton: true,
+    timer: 2000,
+    width,
+  });
 };
 
 interface ConfirmResignationOptions {

@@ -2,9 +2,11 @@ import React from 'react';
 import { useAppSelector } from 'src/store/hooks';
 
 const RatingSystem: React.FC = () => {
-  const { win, draw, loss } = useAppSelector(
-    (state) => state.gameStore.ratingSystem!
-  );
+  const { ratingSystem } = useAppSelector((state) => state.gameStore);
+
+  if (!ratingSystem) return null;
+
+  const { win, loss, draw } = ratingSystem;
 
   return (
     <div className="">

@@ -53,7 +53,7 @@ export interface GameState {
   isDrawBeingOffered?: boolean;
   ratingSystem?: RatingSystem;
   winner?: string;
-  opponent: UserData | null;
+  opponent: UserData | null | Bot;
   result?: GameResult;
   wasDrawDeclined?: boolean;
 }
@@ -121,4 +121,10 @@ export interface GameResult {
   oldRating: number;
   status: 'win' | 'lose' | 'draw';
   difference: number;
+}
+
+export interface Bot {
+  level: string;
+  displayName: string;
+  photoURL: string;
 }

@@ -38,7 +38,7 @@ const PlayersInfo: React.FC = () => {
             alt={top.displayName}
           />
           <p className="mr-1">{top.displayName}</p>
-          <p>({top.rating})</p>
+          {'rating' in top && <p>({top.rating})</p>}
         </a>
       </div>
       <p className="flex justify-center text-4xl my-3">VS</p>
@@ -59,7 +59,7 @@ const PlayersInfo: React.FC = () => {
             alt={bottom.displayName}
           />
           <p className="mr-1">{bottom.displayName}</p>
-          <p>({bottom.rating})</p>
+          {'rating' in bottom && <p>({bottom.rating})</p>}
         </a>
         <p className="text-center mt-2 text-xs text-gray-400">
           {bottom === white ? 'White' : 'Black'}

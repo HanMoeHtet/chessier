@@ -34,6 +34,11 @@ function App() {
             <Game />
           </Authenticated>
         </Route>
+        <Route path="/play/computer" exact>
+          <Authenticated>
+            <Game />
+          </Authenticated>
+        </Route>
         <Route path="/*">
           <div>404 not found</div>
         </Route>

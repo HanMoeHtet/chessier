@@ -25,3 +25,4 @@ yarn-error.log*
 *.code-workspace
 src/debug.ts
 lab
+.env

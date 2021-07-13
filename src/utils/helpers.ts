@@ -22,12 +22,21 @@ export const getSquarePosition = (name: string): Position => {
   };
 };
 
-const rookIds = new Map<number, number>();
+const pieceIds = new Map<number, number>();
 
 export const getRookId = (pos: Position): number => {
-  const id = rookIds.get(pos.row * 8 + pos.col);
+  const id = pieceIds.get(pos.row * 8 + pos.col);
   if (id === undefined) {
-    console.log(pos, rookIds);
+    console.log(pos, pieceIds);
+    throw Error();
+  }
+  return id;
+};
+
+export const getPieceId = (pos: Position): number => {
+  const id = pieceIds.get(pos.row * 8 + pos.col);
+  if (id === undefined) {
+    console.log(pos, pieceIds);
     throw Error();
   }
   return id;
@@ -41,9 +50,7 @@ export const getInitialPieces = (): Piece[] => {
     .forEach((rank, row) => {
       rank.forEach((square, col) => {
         if (square) {
-          if (square.type === 'r') {
-            rookIds.set(row * 8 + col, id);
-          }
+          pieceIds.set(row * 8 + col, id);
           pieces.push({
             ...square,
             id,

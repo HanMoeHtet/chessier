@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useAppDispatch, useAppSelector } from 'src/store/hooks';
 import { signOut } from 'src/services/firebase.service';
 import { useHistory } from 'react-router';
@@ -7,9 +7,11 @@ import Logo from 'src/components/utils/Logo';
 import {
   findMatch,
   cancelSearch as cancel,
+  startWithBot,
 } from 'src/store/gameStore/gameSlice';
 import useModal from 'src/composables/useModal';
 import SearchingIcon from 'src/components/utils/SearchinIcon';
+import { GameDataStatus } from 'src/types';
 
 const Home: React.FC = () => {
   const user = useAppSelector((state) => state.authStore.user!);
@@ -19,12 +21,22 @@ const Home: React.FC = () => {
   const history = useHistory();
 
   const { ModalBox, setIsShowing } = useModal({ initialIsShowing: false });
+  const {
+    ModalBox: ChooseLevelModalBox,
+    setIsShowing: setChooseLevelModalBoxIsShowing,
+  } = useModal({ initialIsShowing: false });
 
   const newGame = async () => {
     setIsShowing(true);
     await dispatch(findMatch());
     setIsShowing(false);
     history.push('play/online');
+  };
+
+  const playWithBot = async (level: string) => {
+    await dispatch(startWithBot(level));
+    setChooseLevelModalBoxIsShowing(false);
+    history.push('play/computer');
   };
 
   const cancelSearch = () => {
@@ -66,7 +78,10 @@ const Home: React.FC = () => {
             >
               New game
             </button>
-            <button className="mb-4 w-48 bg-gray-500 hover:bg-gray-400 text-white font-bold py-2 px-4 border-b-4 border-gray-700 hover:border-gray-500 rounded">
+            <button
+              onClick={() => setChooseLevelModalBoxIsShowing(true)}
+              className="mb-4 w-48 bg-gray-500 hover:bg-gray-400 text-white font-bold py-2 px-4 border-b-4 border-gray-700 hover:border-gray-500 rounded"
+            >
               Play with computer
             </button>
             <button
@@ -93,6 +108,37 @@ const Home: React.FC = () => {
           </button>
         </div>
       </ModalBox>
+      <ChooseLevelModalBox>
+        <div
+          className="w-full h-full bg-gray-700 p-5 flex flex-col rounded-lg justify-evenly relative"
+          style={{ width: 400, height: 300 }}
+        >
+          <div
+            onClick={() => setChooseLevelModalBoxIsShowing(false)}
+            className="absolute top-0 right-0 text-4xl text-gray-400 hover:text-gray-500 cursor-pointer mr-4 mt-2"
+          >
+            &times;
+          </div>
+          <button
+            onClick={() => playWithBot('easy')}
+            className="mx-auto w-48 bg-green-500 hover:bg-green-400 text-white font-bold py-2 px-4 border-b-4 border-green-600 hover:border-green-500 rounded"
+          >
+            Easy
+          </button>
+          <button
+            onClick={() => playWithBot('medium')}
+            className="mx-auto w-48 bg-gray-500 hover:bg-gray-400 text-white font-bold py-2 px-4 border-b-4 border-gray-600 hover:border-gray-500 rounded"
+          >
+            Medium
+          </button>
+          <button
+            onClick={() => playWithBot('hard')}
+            className="mx-auto w-48 bg-red-500 hover:bg-red-400 text-white font-bold py-2 px-4 border-b-4 border-red-700 hover:border-red-500 rounded"
+          >
+            Hard
+          </button>
+        </div>
+      </ChooseLevelModalBox>
     </>
   );
 };

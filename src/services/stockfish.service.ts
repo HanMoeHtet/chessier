@@ -6,7 +6,10 @@ export const post = (message: string) => {
 };
 
 export const watch = (cb: (message: string) => void) => {
-  engine.addEventListener('message', (event) => cb(event.data));
+  const listener = (event: MessageEvent) => cb(event.data);
+  engine.addEventListener('message', listener);
+  const unsubscribe = () => engine.removeEventListener('message', listener);
+  return unsubscribe;
 };
 
 export const findBestMove = (fen = '', depth = 1) => {

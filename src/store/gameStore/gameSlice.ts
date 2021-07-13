@@ -1,5 +1,5 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { Move, PieceSymbol } from 'chess.ts';
+import { Move, PartialMove, PieceSymbol } from 'chess.ts';
 import { createNewGame } from 'src/services/game.service';
 import {
   createNewGame as createGame,
@@ -17,6 +17,7 @@ import {
 } from 'src/services/firestore.servie';
 import {
   AudioType,
+  Bot,
   Color,
   GameData,
   GameDataStatus,
@@ -28,11 +29,13 @@ import {
   Position,
   PromotionData,
   RatingSystem,
+  UserData,
 } from 'src/types';
 import {
   calculateRatingSystem,
   generateSquareName,
   getInitialPieces,
+  getPieceId,
   getRookId,
   getSquarePosition,
 } from 'src/utils/helpers';
@@ -42,6 +45,7 @@ import {
   setCurrentIndex,
   setHistory,
 } from '../historyStore/historySlice';
+import StockfishLogo from 'src/assets/images/stockfish.png';
 
 export let game = createNewGame();
 
@@ -249,13 +253,66 @@ export const start =
       resolve();
     });
 
+export const startWithBot =
+  (level: string): AppThunk =>
+  (dispatch, getState) =>
+    new Promise<void>((resolve) => {
+      game = createNewGame();
+      const opponent: Bot = {
+        displayName: 'Stockfish',
+        level,
+        photoURL: StockfishLogo,
+      };
+      const isPlayerWhite = Math.floor(Math.random() * 2) === 0;
+      const state: GameState = {
+        ...initialState,
+        player: isPlayerWhite ? 'w' : 'b',
+        id: 'bot',
+        perspective: isPlayerWhite ? 'w' : 'b',
+        opponent,
+      };
+      dispatch(setGameState(state));
+      dispatch(setCurrentIndex(0));
+      dispatch(
+        setHistory([
+          {
+            pieces: getInitialPieces(),
+            move: null,
+            animatingPieceIds: [],
+            playingAudios: [],
+          },
+        ])
+      );
+      resolve();
+    });
+
 export const end =
   (isWinning?: boolean): AppThunk =>
   async (dispatch, getState) => {
     const { user } = getState().authStore;
-    const { win, loss, draw } = getState().gameStore.ratingSystem!;
+    const { ratingSystem, id } = getState().gameStore;
+    if (id === 'bot') {
+      let status: any;
+      if (isWinning) {
+        status = 'win';
+      } else if (isWinning === false) {
+        status = 'lose';
+      } else {
+        status = 'draw';
+      }
+      dispatch(
+        setResult({
+          difference: 0,
+          newRating: 0,
+          oldRating: 0,
+          status,
+        })
+      );
+      return;
+    }
+    const { win, loss, draw } = ratingSystem!;
     const authUserId = user?.uid!;
-    const opponentId = getState().gameStore.opponent?.uid!;
+    const opponentId = (getState().gameStore.opponent as UserData)?.uid!;
     let status: 'win' | 'lose' | 'draw';
     let difference;
     const oldRating = user?.rating!;
@@ -344,7 +401,7 @@ export const resign = (): AppThunk => async (dispatch, getState) => {
   const { id, opponent } = getState().gameStore;
   await updateGame(id!, {
     status: GameDataStatus.RESIGNNED,
-    winner: opponent?.uid,
+    winner: (opponent as UserData)?.uid,
   });
 };
 
@@ -369,18 +426,45 @@ export const declineDraw = (): AppThunk => async (dispatch, getState) => {
   updateGame(id!, { status: GameDataStatus.DRAW_DECLINED });
 };
 
+export const makeBotMove =
+  (move: PartialMove): AppThunk =>
+  (dispatch, getState) => {
+    const { pieces } = getState().gameStore;
+    const pieceIds = [
+      pieces.find((piece) => generateSquareName(piece.pos) === move.from)?.id!,
+    ];
+    const moves = game.moves({ square: move.from, verbose: true });
+    move = {
+      ...moves.find((_move) => _move.to === move.to)!,
+      promotion: move.promotion,
+    };
+    const interval = setInterval(() => {
+      const { playingAudios, animatingPieceIds } = getState().gameStore;
+      if (playingAudios.length === 0 && animatingPieceIds.length === 0) {
+        clearInterval(interval);
+        dispatch(makeMove(pieceIds, move as Move));
+      }
+    }, 500);
+  };
+
 export const makeMove =
   (pieceIds: number[], gameMove: Move): AppThunk =>
   (dispatch, getState) => {
-    addGameMove(getState().gameStore.id!, {
-      pieceIds,
-      move: JSON.parse(JSON.stringify(gameMove)),
-    });
+    const { id } = getState().gameStore;
+    if (id === 'bot') {
+      dispatch(_makeMove(pieceIds, gameMove));
+    } else {
+      addGameMove(id!, {
+        pieceIds,
+        move: JSON.parse(JSON.stringify(gameMove)),
+      });
+    }
   };
 
 export const _makeMove =
   (pieceIds: number[], gameMove: Move): AppThunk =>
   (dispatch) => {
+    console.log(gameMove);
     switch (gameMove.flags) {
       case 'e':
         dispatch(enPassant(pieceIds, gameMove));
@@ -399,6 +483,7 @@ export const _makeMove =
         dispatch(queenSideCastle(pieceIds, gameMove));
         break;
       default:
+        console.log('bot move');
         dispatch(move(pieceIds, gameMove));
         break;
     }
@@ -746,7 +831,6 @@ export const promote =
     const { focusedPieceId, pieces } = getState().gameStore;
     dispatch(hidePromotionModalBox());
     const pos = getSquarePosition(move.to);
-    console.log(pos);
     let _pieces = pieces.map((piece) => {
       if (piece.id === pieceIds[0]) {
         return {
@@ -810,6 +894,10 @@ export const togglePerspective = (): AppThunk => (dispatch, getState) => {
   dispatch(
     setPerspective(getState().gameStore.perspective === 'w' ? 'b' : 'w')
   );
+};
+
+export const getFen = (): string => {
+  return game.fen();
 };
 
 export default gameSlice.reducer;

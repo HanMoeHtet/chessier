@@ -8,7 +8,7 @@ interface Props {
 
 const ResultModalBox: React.FC<Props> = ({ onCancelled }) => {
   const gameResult = useAppSelector((state) => state.gameStore.result!);
-  const { player } = useAppSelector((state) => state.gameStore);
+  const { player, id } = useAppSelector((state) => state.gameStore);
 
   const { status, newRating, oldRating, difference } = gameResult;
   let result;
@@ -36,20 +36,22 @@ const ResultModalBox: React.FC<Props> = ({ onCancelled }) => {
       style={{ width: 300, height: 400 }}
     >
       <h3 className="text-gray-500 text-3xl text-center">{result}</h3>
-      <p className="text-2xl text-center">
-        <span className="text-gray-700 font-bold">{newRating}</span>
-        &nbsp;&nbsp;&nbsp;(&nbsp;
-        <span className="text-gray-400 font-bold">{oldRating}</span>
-        &nbsp;
-        <span className={`${diffColorClass} font-bold`}>
-          {difference >= 0 ? '+' : '-'}
-        </span>
-        &nbsp;
-        <span className={`${diffColorClass} font-bold`}>
-          {Math.abs(difference)}
-        </span>
-        &nbsp;)
-      </p>
+      {id !== 'bot' && (
+        <p className="text-2xl text-center">
+          <span className="text-gray-700 font-bold">{newRating}</span>
+          &nbsp;&nbsp;&nbsp;(&nbsp;
+          <span className="text-gray-400 font-bold">{oldRating}</span>
+          &nbsp;
+          <span className={`${diffColorClass} font-bold`}>
+            {difference >= 0 ? '+' : '-'}
+          </span>
+          &nbsp;
+          <span className={`${diffColorClass} font-bold`}>
+            {Math.abs(difference)}
+          </span>
+          &nbsp;)
+        </p>
+      )}
       <div className="flex justify-center flex-col items-center">
         <button
           onClick={() => {}}

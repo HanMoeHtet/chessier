@@ -1,14 +1,17 @@
-import React, { useEffect } from 'react';
-import useModal from 'src/composables/useModal';
-import { useAppSelector } from 'src/store/hooks';
+import React from 'react';
+import { useHistory } from 'react-router-dom';
+import { findMatch } from 'src/store/gameStore/gameSlice';
+import { useAppDispatch, useAppSelector } from 'src/store/hooks';
+import { setModalContent } from 'src/store/modalContent/modalContentSlice';
+import { ModalContentType } from 'src/types';
+import NewGameButton from '../NewGameButton';
+import PlayWithComputerButton from '../PlayWithComputerButton';
 
-interface Props {
-  onCancelled: () => void;
-}
-
-const ResultModalBox: React.FC<Props> = ({ onCancelled }) => {
+const Result: React.FC = () => {
   const gameResult = useAppSelector((state) => state.gameStore.result!);
   const { player, id } = useAppSelector((state) => state.gameStore);
+  const dispatch = useAppDispatch();
+  const history = useHistory();
 
   const { status, newRating, oldRating, difference } = gameResult;
   let result;
@@ -25,6 +28,9 @@ const ResultModalBox: React.FC<Props> = ({ onCancelled }) => {
     case 'lose':
       result = `${player === 'w' ? 'Black' : 'White'} won`;
       diffColorClass = 'text-red-400';
+      break;
+    case 'aborted':
+      result = `Game aborted`;
       break;
     default:
       throw Error('Unknown result status!');
@@ -53,17 +59,12 @@ const ResultModalBox: React.FC<Props> = ({ onCancelled }) => {
         </p>
       )}
       <div className="flex justify-center flex-col items-center">
+        <NewGameButton />
+        <PlayWithComputerButton />
         <button
-          onClick={() => {}}
-          className="mb-4 w-48 bg-green-500 hover:bg-green-400 text-white font-bold py-2 px-4 border-b-4 border-green-600 hover:border-green-500 rounded"
-        >
-          New game
-        </button>
-        <button className="mb-4 w-48 bg-gray-500 hover:bg-gray-400 text-white font-bold py-2 px-4 border-b-4 border-gray-700 hover:border-gray-500 rounded">
-          Play with computer
-        </button>
-        <button
-          onClick={onCancelled}
+          onClick={() => {
+            dispatch(setModalContent(null));
+          }}
           className="w-48 bg-red-500 hover:bg-red-400 text-white font-bold py-2 px-4 border-b-4 border-red-700 hover:border-red-500 rounded"
         >
           Cancel
@@ -73,4 +74,4 @@ const ResultModalBox: React.FC<Props> = ({ onCancelled }) => {
   );
 };
 
-export default ResultModalBox;
+export default Result;

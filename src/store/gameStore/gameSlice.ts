@@ -340,6 +340,21 @@ export const end =
     );
   };
 
+export const abort = (): AppThunk => (dispatch) => {
+  const result: GameResult = {
+    difference: 0,
+    newRating: 0,
+    oldRating: 0,
+    status: 'aborted',
+  };
+  dispatch(setPlayingAudios(['end']));
+  dispatch(setResult(result));
+};
+
+export const destory = (): AppThunk => (dispatch) => {
+  dispatch(setGameState(initialState));
+};
+
 export const focus =
   (pieceId: number, pos: Position): AppThunk =>
   async (dispatch, getState) => {
@@ -464,7 +479,6 @@ export const makeMove =
 export const _makeMove =
   (pieceIds: number[], gameMove: Move): AppThunk =>
   (dispatch) => {
-    console.log(gameMove);
     switch (gameMove.flags) {
       case 'e':
         dispatch(enPassant(pieceIds, gameMove));
@@ -483,7 +497,6 @@ export const _makeMove =
         dispatch(queenSideCastle(pieceIds, gameMove));
         break;
       default:
-        console.log('bot move');
         dispatch(move(pieceIds, gameMove));
         break;
     }

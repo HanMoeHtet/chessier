@@ -1,5 +1,6 @@
 import React from 'react';
 import { BrowserRouter, Switch, Route } from 'react-router-dom';
+import AppModal from './components/AppModal';
 import Authenticated from './guards/Authenticated';
 import Guest from './guards/Guest';
 import Game from './pages/Game';
@@ -43,6 +44,7 @@ function App() {
           <div>404 not found</div>
         </Route>
       </Switch>
+      <AppModal />
     </BrowserRouter>
   );
 }

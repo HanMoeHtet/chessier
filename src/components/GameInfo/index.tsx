@@ -13,7 +13,7 @@ import {
   showDrawOfferReceivedMessage,
   showDrawOfferDeclinedMessage,
 } from 'src/services/sweet-alert-2.service';
-import GameActions from 'src/GameActions';
+import GameActions from 'src/components/GameActions';
 
 const GameInfo: React.FC = () => {
   const { isDrawBeingOffered, opponent, wasDrawDeclined } = useAppSelector(

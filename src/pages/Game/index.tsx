@@ -1,31 +1,32 @@
 import { PieceSymbol } from 'chess.ts';
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
+import { useHistory } from 'react-router-dom';
 import AudioPlayer from 'src/components/AudioPlayer';
 import Board from 'src/components/Board';
 import GameInfo from 'src/components/GameInfo';
-import ResultModalBox from 'src/components/ResultModalBox';
 import Settings from 'src/components/Settings';
 import Logo from 'src/components/utils/Logo';
-import useModal from 'src/composables/useModal';
+import SearchingIcon from 'src/components/utils/SearchinIcon';
 import { findBestMove, watch } from 'src/services/stockfish.service';
 import {
+  cancelSearch as cancel,
   getFen,
   makeBotMove,
   setPlayingAudios,
+  startWithBot,
 } from 'src/store/gameStore/gameSlice';
 import { useAppDispatch, useAppSelector } from 'src/store/hooks';
+import { setModalContent } from 'src/store/modalContent/modalContentSlice';
+import { ModalContentType } from 'src/types';
 import styles from './index.module.css';
 
 const Game: React.FC = () => {
   const dispatch = useAppDispatch();
+  const history = useHistory();
 
   const { result, id, turn, opponent, player } = useAppSelector(
     (state) => state.gameStore
   );
-
-  const { ModalBox, setIsShowing } = useModal({
-    initialIsShowing: false,
-  });
 
   useEffect(() => {
     dispatch(setPlayingAudios(['start']));
@@ -33,9 +34,9 @@ const Game: React.FC = () => {
 
   useEffect(() => {
     if (result) {
-      setIsShowing(true);
+      dispatch(setModalContent(ModalContentType.RESULT));
     }
-  }, [result, setIsShowing]);
+  }, [result, dispatch]);
 
   useEffect(() => {
     if (id === 'bot') {
@@ -58,7 +59,7 @@ const Game: React.FC = () => {
   }, [id, dispatch]);
 
   useEffect(() => {
-    if (id === 'bot' && turn !== player && 'level' in opponent!) {
+    if (!result && id === 'bot' && turn !== player && 'level' in opponent!) {
       let depth;
       switch (opponent.level) {
         case 'easy':
@@ -75,7 +76,7 @@ const Game: React.FC = () => {
       }
       findBestMove(getFen(), depth);
     }
-  }, [id, turn, opponent, player]);
+  }, [id, turn, opponent, player, result]);
 
   return (
     <div className="grid grid-cols-12 min-h-screen">
@@ -96,13 +97,6 @@ const Game: React.FC = () => {
         <Settings />
       </div>
       <AudioPlayer />
-      <ModalBox>
-        <ResultModalBox
-          onCancelled={() => {
-            setIsShowing(false);
-          }}
-        />
-      </ModalBox>
     </div>
   );
 };

@@ -119,7 +119,7 @@ export interface RatingSystem {
 export interface GameResult {
   newRating: number;
   oldRating: number;
-  status: 'win' | 'lose' | 'draw';
+  status: 'win' | 'lose' | 'draw' | 'aborted';
   difference: number;
 }
 
@@ -127,4 +127,15 @@ export interface Bot {
   level: string;
   displayName: string;
   photoURL: string;
+}
+
+export enum ModalContentType {
+  RESULT,
+  CHOOSE_BOT_LEVEL,
+  FINDING_MATCH,
+}
+
+export interface ModalContentState {
+  content: ModalContentType | null;
+  backgroundColor: 'light' | 'dark';
 }

@@ -86,3 +86,18 @@ export const showConfirmResignation = async ({
   });
   return result.isConfirmed;
 };
+
+export const showEmailSentMessage = async () => {
+  await Swal.fire({
+    toast: true,
+    position: 'bottom-start',
+    willOpen(toastEl) {
+      toastEl.style.boxShadow = 'none';
+    },
+    timer: 3000,
+    showConfirmButton: false,
+    icon: 'success',
+    title: 'Email Sent',
+    text: 'Thanks for contacting us. Have a nice day!',
+  });
+};

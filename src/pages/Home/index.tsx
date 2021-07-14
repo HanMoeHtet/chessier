@@ -18,15 +18,6 @@ import { setModalContent } from 'src/store/modalContent/modalContentSlice';
 const Home: React.FC = () => {
   const user = useAppSelector((state) => state.authStore.user!);
 
-  const dispatch = useAppDispatch();
-
-  const history = useHistory();
-
-  const cancelSearch = () => {
-    dispatch(cancel());
-    dispatch(setModalContent(null));
-  };
-
   return (
     <>
       <div className="w-screen min-h-screen bg-gray-700 relative">

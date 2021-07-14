@@ -5,6 +5,7 @@ import Authenticated from './guards/Authenticated';
 import Guest from './guards/Guest';
 import Game from './pages/Game';
 import Home from './pages/Home';
+import LandingPage from './pages/LandingPage';
 import Login from './pages/Login';
 
 function App() {
@@ -12,7 +13,10 @@ function App() {
     <BrowserRouter>
       <Switch>
         <Route path="/" exact>
-          <p>Chessier</p>
+          <LandingPage />
+        </Route>
+        <Route path="/about" exact>
+          <p>Chessier about</p>
         </Route>
         <Route path="/terms" exact>
           <p>Chessier terms</p>

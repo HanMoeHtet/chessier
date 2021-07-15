@@ -39,11 +39,11 @@ const Result: React.FC = () => {
 
   return (
     <div
-      className={`justify-evenly w-full h-full bg-gray-100 p-5 flex flex-col rounded-lg ${styles.content}`}
+      className={`justify-evenly bg-gray-100 p-5 flex flex-col rounded-lg ${styles.content}`}
     >
-      <h3 className="text-gray-500 text-3xl text-center">{result}</h3>
+      <h3 className="text-gray-500 text-3xl text-center mb-3">{result}</h3>
       {id !== 'bot' && (
-        <p className="text-2xl text-center">
+        <p className="text-2xl text-center mb-3">
           <span className="text-gray-700 font-bold">{newRating}</span>
           &nbsp;&nbsp;&nbsp;(&nbsp;
           <span className="text-gray-400 font-bold">{oldRating}</span>

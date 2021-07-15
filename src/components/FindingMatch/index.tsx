@@ -15,7 +15,7 @@ const FindingMatch: React.FC = () => {
 
   return (
     <div
-      className={`w-full h-full bg-gray-700 p-5 flex flex-col rounded-lg ${styles.content}`}
+      className={` bg-gray-700 p-5 flex flex-col rounded-lg ${styles.content}`}
     >
       <h3 className="text-gray-400 text-3xl text-center">Finding match</h3>
       <SearchingIcon />

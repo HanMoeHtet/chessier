@@ -9,7 +9,7 @@ const FamousPlayersSection: React.FC = () => {
           Here are some of the most popular chess players and Youtube
           personalities
         </h3>
-        <div className="grid grid-cols-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
           {data.map((player, i) => (
             <a
               key={i}

@@ -1,19 +1,9 @@
-import React, { useState } from 'react';
-import { useAppDispatch, useAppSelector } from 'src/store/hooks';
+import { useAppSelector } from 'src/store/hooks';
 import { signOut } from 'src/services/firebase.service';
-import { useHistory } from 'react-router';
 import { Link } from 'react-router-dom';
 import Logo from 'src/components/utils/Logo';
-import {
-  findMatch,
-  cancelSearch as cancel,
-  startWithBot,
-} from 'src/store/gameStore/gameSlice';
-import SearchingIcon from 'src/components/utils/SearchinIcon';
-import { GameDataStatus } from 'src/types';
 import NewGameButton from 'src/components/NewGameButton';
 import PlayWithComputerButton from 'src/components/PlayWithComputerButton';
-import { setModalContent } from 'src/store/modalContent/modalContentSlice';
 
 const Home: React.FC = () => {
   const user = useAppSelector((state) => state.authStore.user!);
@@ -21,13 +11,13 @@ const Home: React.FC = () => {
   return (
     <>
       <div className="w-screen min-h-screen bg-gray-700 relative">
-        <div className="absolute top-0 left-0 p-5 text-white">
+        <div className="absolute top-0 left-0 p-5 text-white w-full sm:w-auto flex justify-center">
           <Link to="/" className="hover:text-gray-300">
             <Logo width="150px" />
           </Link>
         </div>
         <div className="flex flex-col items-center justify-center content-center w-full h-full min-h-screen">
-          <div className="mb-14">
+          <div className="mt-10 sm:mt-0 mb-14">
             <div className="flex justify-center mb-4">
               <img
                 className="border"

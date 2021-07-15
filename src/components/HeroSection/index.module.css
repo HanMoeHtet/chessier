@@ -1,4 +1,25 @@
 .section {
-  background-image: url('/src/assets/images/hero.jpeg');
-  background-size: cover;
+  background: linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)),
+    url('/src/assets/images/hero.jpeg');
+  background-size: 100% 100%;
+  background-position: center;
+  background-repeat: no-repeat;
+  height: 80vh;
+}
+
+.overlay {
+  background-color: rgba(0, 0, 0, 1);
+  opacity: 0.3;
+}
+
+@media only screen and (min-width: 430px) {
+  .section {
+    height: 100vh;
+  }
+}
+
+@media only screen and (min-width: 1024px) {
+  .section {
+    height: 120vh;
+  }
 }

@@ -414,6 +414,7 @@ export const cancel = (): AppThunk => (dispatch, getState) => {
 
 export const resign = (): AppThunk => async (dispatch, getState) => {
   const { id, opponent } = getState().gameStore;
+  console.log(opponent);
   await updateGame(id!, {
     status: GameDataStatus.RESIGNNED,
     winner: (opponent as UserData)?.uid,

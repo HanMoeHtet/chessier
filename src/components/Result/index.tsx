@@ -6,6 +6,7 @@ import { setModalContent } from 'src/store/modalContent/modalContentSlice';
 import { ModalContentType } from 'src/types';
 import NewGameButton from '../NewGameButton';
 import PlayWithComputerButton from '../PlayWithComputerButton';
+import styles from './index.module.css';
 
 const Result: React.FC = () => {
   const gameResult = useAppSelector((state) => state.gameStore.result!);
@@ -38,8 +39,7 @@ const Result: React.FC = () => {
 
   return (
     <div
-      className="justify-evenly w-full h-full bg-gray-100 p-5 flex flex-col rounded-lg"
-      style={{ width: 300, height: 400 }}
+      className={`justify-evenly w-full h-full bg-gray-100 p-5 flex flex-col rounded-lg ${styles.content}`}
     >
       <h3 className="text-gray-500 text-3xl text-center">{result}</h3>
       {id !== 'bot' && (

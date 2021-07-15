@@ -4,9 +4,9 @@ import { channels, sites } from './data';
 const Resources: React.FC = () => {
   return (
     <section className={`w-full`}>
-      <div className="container mx-auto p-10">
-        <div className="grid grid-cols-2">
-          <div className="border bg-gray-200 mx-10 rounded-lg">
+      <div className="container mx-auto px-4 py-10 lg:px-10">
+        <div className="grid grid-cols-1 lg:grid-cols-2">
+          <div className="border bg-gray-200 lg:mx-10 rounded-lg mb-5 lg:mb-0">
             <h3 className="text-2xl text-center text-gray-500 py-5">
               Popular chess websites and Youtube channels
             </h3>
@@ -49,7 +49,7 @@ const Resources: React.FC = () => {
               ))}
             </div>
           </div>
-          <div className="flex items-center">
+          <div className="flex items-center justify-center">
             <iframe
               width="560"
               height="315"

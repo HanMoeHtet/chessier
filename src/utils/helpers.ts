@@ -68,6 +68,10 @@ interface PositionOnBoard {
   y: number;
 }
 
+/**
+ * @deprecated
+ * FIXME: Avoid using SQUARE_WIDTH
+ */
 export const getSquarePosOnBoard = (
   boardPos: PositionOnBoard,
   mousePos: PositionOnBoard

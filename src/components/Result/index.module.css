@@ -1,0 +1,10 @@
+.content {
+  width: 400px;
+  height: 300px;
+}
+
+@media only screen and (max-width: 640px) {
+  .content {
+    width: 300px;
+  }
+}

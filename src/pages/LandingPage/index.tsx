@@ -7,7 +7,7 @@ import Resources from 'src/components/Resources';
 
 const LandingPage: React.FC = () => {
   return (
-    <div className="w-screen min-h-screen relative">
+    <div className="max-w-screen min-h-screen relative overflow-x-hidden">
       <Navbar />
       <HeroSection />
       <FamousPlayersSection />

@@ -1,4 +1,45 @@
 .boardContainer {
-  width: 640px;
-  height: 640px;
+  width: 100vw;
+  height: 100vw;
+}
+
+.drawer {
+  transition: transform 0.4s ease;
+  will-change: transform;
+}
+
+.drawer.open {
+  transform: translateX(0);
+}
+
+.drawer.close {
+  transform: translateX(100%);
+}
+
+@media only screen and (min-width: 425px) {
+  .boardContainer {
+    width: 425px;
+    height: 425px;
+  }
+}
+
+@media only screen and (min-width: 1024px) {
+  .boardContainer {
+    width: 480px;
+    height: 480px;
+  }
+}
+
+@media only screen and (min-width: 1125px) {
+  .boardContainer {
+    width: 560px;
+    height: 560px;
+  }
+}
+
+@media only screen and (min-width: 1300px) {
+  .boardContainer {
+    width: 640px;
+    height: 640px;
+  }
 }

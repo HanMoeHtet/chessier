@@ -4,6 +4,8 @@ import { useHistory } from 'react-router-dom';
 import AudioPlayer from 'src/components/AudioPlayer';
 import Board from 'src/components/Board';
 import GameInfo from 'src/components/GameInfo';
+import MoveList from 'src/components/MoveList';
+import SettingButtons from 'src/components/SettingButtons';
 import Settings from 'src/components/Settings';
 import Logo from 'src/components/utils/Logo';
 import SearchingIcon from 'src/components/utils/SearchinIcon';
@@ -19,6 +21,7 @@ import { useAppDispatch, useAppSelector } from 'src/store/hooks';
 import { setModalContent } from 'src/store/modalContent/modalContentSlice';
 import { ModalContentType } from 'src/types';
 import styles from './index.module.css';
+import MobileView from './MobileView';
 
 const Game: React.FC = () => {
   const dispatch = useAppDispatch();
@@ -79,25 +82,31 @@ const Game: React.FC = () => {
   }, [id, turn, opponent, player, result]);
 
   return (
-    <div className="grid grid-cols-12 min-h-screen">
-      <div className="bg-gray-700 col-span-3 border-r px-3 border-gray-600 flex flex-col">
-        <header className="py-5 text-white flex justify-center cursor-pointer mb-10">
-          <Logo width="150px" />
-        </header>
-        <GameInfo />
-      </div>
-      <div className="bg-gray-700 col-span-6">
-        <div className="container flex justify-center items-center w-full h-full">
-          <div className={`bg-red-100 ${styles.boardContainer}`}>
-            <Board />
+    <>
+      <AudioPlayer />
+      {/* Mobile view */}
+      <MobileView />
+
+      {/* Desktop view */}
+      <div className="hidden lg:grid grid-cols-12 min-h-screen">
+        <div className="bg-gray-700 col-span-3 border-r px-3 border-gray-600 flex flex-col">
+          <header className="py-5 text-white flex justify-center cursor-pointer mb-10">
+            <Logo width="150px" />
+          </header>
+          <GameInfo />
+        </div>
+        <div className="bg-gray-700 col-span-6">
+          <div className="container flex justify-center items-center w-full h-full">
+            <div className={`bg-red-100 ${styles.boardContainer}`}>
+              <Board />
+            </div>
           </div>
         </div>
+        <div className="bg-gray-800 col-span-3">
+          <Settings />
+        </div>
       </div>
-      <div className="bg-gray-800 col-span-3">
-        <Settings />
-      </div>
-      <AudioPlayer />
-    </div>
+    </>
   );
 };
 

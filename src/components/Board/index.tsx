@@ -68,7 +68,7 @@ const Board: React.FC = () => {
 
   return (
     <div
-      className={`${styles.board} w-full h-full bg-cover`}
+      className={`${styles.board} w-full h-full`}
       style={perspective === 'w' ? {} : { transform: `rotateZ(180deg)` }}
       onContextMenu={onBoardRightClicked}
     >

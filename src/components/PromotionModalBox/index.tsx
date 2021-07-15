@@ -2,7 +2,6 @@ import React from 'react';
 import styles from './index.module.css';
 import pieceStyles from '../Piece/index.module.css';
 import { useAppDispatch, useAppSelector } from 'src/store/hooks';
-import { SQUARE_WIDTH } from 'src/utils/constants';
 import {
   promote,
   setPlayingAudios,
@@ -37,7 +36,7 @@ const PromotionModalBox: React.FC = () => {
         turn === 'w' ? '' : styles.bottom
       }`}
       style={{
-        transform: `translateX(${pos.col * SQUARE_WIDTH}px) ${
+        transform: `translateX(${pos.col * 100}%) ${
           perspective === 'w' ? '' : 'rotateZ(180deg)'
         }`,
       }}

@@ -3,6 +3,7 @@ import SearchingIcon from 'src/components/utils/SearchinIcon';
 import { cancelSearch } from 'src/store/gameStore/gameSlice';
 import { useAppDispatch } from 'src/store/hooks';
 import { setModalContent } from 'src/store/modalContent/modalContentSlice';
+import styles from './index.module.css';
 
 const FindingMatch: React.FC = () => {
   const dispatch = useAppDispatch();
@@ -14,8 +15,7 @@ const FindingMatch: React.FC = () => {
 
   return (
     <div
-      className="w-full h-full bg-gray-700 p-5 flex flex-col rounded-lg"
-      style={{ width: 400, height: 300 }}
+      className={`w-full h-full bg-gray-700 p-5 flex flex-col rounded-lg ${styles.content}`}
     >
       <h3 className="text-gray-400 text-3xl text-center">Finding match</h3>
       <SearchingIcon />

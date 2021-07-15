@@ -1,4 +1,5 @@
 .board {
   position: relative;
   background-image: url('/src/assets/images/chessboards/default.png');
+  background-size: cover;
 }

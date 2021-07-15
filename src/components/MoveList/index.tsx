@@ -60,7 +60,9 @@ const MoveList: React.FC = () => {
 
   return (
     <>
-      <h3 className="text-center text-gray-200 text-xl py-4">Moves</h3>
+      <h3 className="text-center text-gray-200 text-xl py-4 hidden sm:block">
+        Moves
+      </h3>
       <div ref={ref} className={styles.container}>
         <table className={styles.moveList}>
           <tbody>{render()}</tbody>

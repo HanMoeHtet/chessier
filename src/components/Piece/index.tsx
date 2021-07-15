@@ -5,7 +5,6 @@ import {
 } from 'src/store/gameStore/gameSlice';
 import { useAppDispatch, useAppSelector } from 'src/store/hooks';
 import { Piece as PieceType } from 'src/types';
-import { SQUARE_WIDTH } from 'src/utils/constants';
 import styles from './index.module.css';
 
 interface Props extends PieceType {}
@@ -36,9 +35,9 @@ const Piece: React.FC<Props> = ({ type, color, id, pos }) => {
         animatingPieceIds.includes(id) ? styles.animate : ''
       }`}
       style={{
-        transform: `translate(${pos.col * SQUARE_WIDTH}px, ${
-          pos.row * SQUARE_WIDTH
-        }px) ${perspective === 'w' ? '' : 'rotateZ(180deg)'}`,
+        transform: `translate(${pos.col * 100}%, ${pos.row * 100}%) ${
+          perspective === 'w' ? '' : 'rotateZ(180deg)'
+        }`,
       }}
       onClick={onPieceClicked}
       onTransitionEnd={handleTransitionEnd}

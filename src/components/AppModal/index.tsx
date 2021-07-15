@@ -50,8 +50,8 @@ const AppModal: React.FC = () => {
 
   return (
     <div
-      className="fixed top-0 w-screen min-h-screen flex items-center justify-center"
-      style={{ backgroundColor: 'rgba(0, 0, 0, 0.7)', zIndex: 5 }}
+      className="fixed top-0 w-screen min-h-screen flex items-center justify-center z-50"
+      style={{ backgroundColor: 'rgba(0, 0, 0, 0.7)' }}
     >
       <div ref={(el) => setTarget(el)} className="">
         {renderModalContent()}

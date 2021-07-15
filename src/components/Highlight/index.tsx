@@ -1,6 +1,5 @@
 import React from 'react';
 import { Highlight as HighlightType } from 'src/types';
-import { SQUARE_WIDTH } from 'src/utils/constants';
 import styles from './index.module.css';
 
 const Highlight: React.FC<HighlightType> = ({ pos, color }) => {
@@ -12,9 +11,7 @@ const Highlight: React.FC<HighlightType> = ({ pos, color }) => {
         isLightSquare ? styles.light : styles.dark
       } ${styles[color]}`}
       style={{
-        transform: `translate(${pos.col * SQUARE_WIDTH}px, ${
-          pos.row * SQUARE_WIDTH
-        }px)`,
+        transform: `translate(${pos.col * 100}%, ${pos.row * 100}%)`,
       }}
     ></div>
   );

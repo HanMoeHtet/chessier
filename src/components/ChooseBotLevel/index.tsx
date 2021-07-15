@@ -3,6 +3,7 @@ import { useHistory } from 'react-router-dom';
 import { startWithBot } from 'src/store/gameStore/gameSlice';
 import { useAppDispatch } from 'src/store/hooks';
 import { setModalContent } from 'src/store/modalContent/modalContentSlice';
+import styles from './index.module.css';
 
 const ChooseBotLevel: React.FC = () => {
   const dispatch = useAppDispatch();
@@ -16,8 +17,7 @@ const ChooseBotLevel: React.FC = () => {
 
   return (
     <div
-      className="w-full h-full bg-gray-700 p-5 flex flex-col rounded-lg justify-evenly relative"
-      style={{ width: 400, height: 300 }}
+      className={`bg-gray-700 p-5 flex flex-col rounded-lg justify-evenly relative ${styles.content}`}
     >
       <div
         onClick={() => dispatch(setModalContent(null))}

@@ -2,7 +2,6 @@ import React from 'react';
 import { makeMove } from 'src/store/gameStore/gameSlice';
 import { useAppDispatch } from 'src/store/hooks';
 import { Hint as HintType } from 'src/types';
-import { SQUARE_WIDTH } from 'src/utils/constants';
 import { getSquarePosition } from 'src/utils/helpers';
 import styles from './index.module.css';
 
@@ -21,9 +20,7 @@ const Hint: React.FC<Props> = ({ move, pieceIds }) => {
     <div
       className={styles.hint}
       style={{
-        transform: `translate(${pos.col * SQUARE_WIDTH}px, ${
-          pos.row * SQUARE_WIDTH
-        }px)`,
+        transform: `translate(${pos.col * 100}%, ${pos.row * 100}%)`,
       }}
       onClick={handleClick}
     >

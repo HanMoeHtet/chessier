@@ -1,9 +1,6 @@
 import React from 'react';
-import { useHistory } from 'react-router-dom';
-import { findMatch } from 'src/store/gameStore/gameSlice';
 import { useAppDispatch, useAppSelector } from 'src/store/hooks';
 import { setModalContent } from 'src/store/modalContent/modalContentSlice';
-import { ModalContentType } from 'src/types';
 import NewGameButton from '../NewGameButton';
 import PlayWithComputerButton from '../PlayWithComputerButton';
 import styles from './index.module.css';
@@ -12,7 +9,6 @@ const Result: React.FC = () => {
   const gameResult = useAppSelector((state) => state.gameStore.result!);
   const { player, id } = useAppSelector((state) => state.gameStore);
   const dispatch = useAppDispatch();
-  const history = useHistory();
 
   const { status, newRating, oldRating, difference } = gameResult;
   let result;

@@ -1,45 +1,14 @@
 import 'dotenv/config';
 import React from 'react';
 import ReactDOM from 'react-dom';
-import App from './App';
 import { store } from './store';
+import App from './App';
 import { Provider } from 'react-redux';
 import * as serviceWorker from './serviceWorker';
 import './index.css';
+import { init } from './services/firebase.service';
 
-import { setIsLoading, setUser } from 'src/store/authStore/authSlice';
-import firebase from 'src/services/firebase.service';
-import { addOrRetriveUser } from './services/firestore.servie';
-import { UserData } from './types';
-import { DEFAULT_RATING, DEFAULT_UERNAME } from './utils/constants';
-
-firebase.auth().onAuthStateChanged(async (user) => {
-  if (!user) {
-    store.dispatch(setIsLoading(false));
-    store.dispatch(setUser(null));
-    return;
-  }
-  const { displayName, email, phoneNumber, uid, photoURL, providerId } = user;
-  const defaultUserData: UserData = {
-    displayName: displayName || DEFAULT_UERNAME,
-    photoURL,
-    rating: DEFAULT_RATING,
-    uid,
-  };
-  const userData: UserData = await addOrRetriveUser(uid, defaultUserData);
-  store.dispatch(
-    setUser({
-      displayName: userData.displayName,
-      email,
-      phoneNumber,
-      uid,
-      photoURL: userData.photoURL,
-      providerId,
-      rating: userData.rating,
-    })
-  );
-  store.dispatch(setIsLoading(false));
-});
+init();
 
 ReactDOM.render(
   <React.StrictMode>

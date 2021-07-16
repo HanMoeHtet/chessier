@@ -2,11 +2,7 @@ import React from 'react';
 import styles from './index.module.css';
 import pieceStyles from '../Piece/index.module.css';
 import { useAppDispatch, useAppSelector } from 'src/store/hooks';
-import {
-  promote,
-  setPlayingAudios,
-  setPromotionData,
-} from 'src/store/gameStore/gameSlice';
+import { promote, setPromotionData } from 'src/store/gameStore/gameSlice';
 import { PieceSymbol } from 'chess.ts';
 import { getSquarePosition } from 'src/utils/helpers';
 

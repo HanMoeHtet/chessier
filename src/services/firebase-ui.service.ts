@@ -1,5 +1,5 @@
 import * as firebaseui from 'firebaseui';
-import firebase from 'firebase';
+import firebase from 'firebase/app';
 import app from './firebase.service';
 
 const ui = new firebaseui.auth.AuthUI(app.auth());
@@ -24,6 +24,7 @@ export const setUpUI = (id: string) => {
       },
       firebase.auth.GoogleAuthProvider.PROVIDER_ID,
     ],
+    siteName: process.env.REACT_APP_URL,
     signInSuccessUrl: '/home',
     signInFlow: 'popup',
     tosUrl: '/terms',

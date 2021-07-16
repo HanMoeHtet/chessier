@@ -5,16 +5,26 @@ import NextIcon from '../utils/NextIcon';
 import StepForwardIcon from '../utils/StepForwardIcon';
 import StepBackwardIcon from '../utils/StepBackwardIcon';
 import Tippy from '@tippyjs/react';
-import { useSettings } from 'src/composables/useSettings';
+import { useAppDispatch } from 'src/store/hooks';
+import { togglePerspective } from 'src/store/gameStore/gameSlice';
+import {
+  back,
+  firstMove,
+  lastMove,
+  next,
+} from 'src/store/historyStore/historySlice';
 
 const SettingButtons: React.FC = () => {
-  const { flip, back, next, firstMove, lastMove } = useSettings();
+  const dispatch = useAppDispatch();
 
   return (
     <div className="flex justify-center items-center my-5">
       <div className="px-3">
         <Tippy content="Flip the Board">
-          <button onClick={flip}>
+          <button
+            onClick={() => dispatch(togglePerspective())}
+            onTouchStart={() => console.log('touched')}
+          >
             <FlipIcon
               color="rgba(107, 114, 128, var(--tw-bg-opacity))"
               width="25px"
@@ -25,7 +35,7 @@ const SettingButtons: React.FC = () => {
       </div>
       <div className="px-3">
         <Tippy content="First Move">
-          <button onClick={firstMove}>
+          <button onClick={() => dispatch(firstMove())}>
             <StepBackwardIcon
               color="rgba(107, 114, 128, var(--tw-bg-opacity))"
               width="25px"
@@ -36,7 +46,7 @@ const SettingButtons: React.FC = () => {
       </div>
       <div className="px-3">
         <Tippy content="Previous Move">
-          <button onClick={back}>
+          <button onClick={() => dispatch(back())}>
             <BackIcon
               color="rgba(107, 114, 128, var(--tw-bg-opacity))"
               width="25px"
@@ -47,7 +57,7 @@ const SettingButtons: React.FC = () => {
       </div>
       <div className="px-3">
         <Tippy content="Next Move">
-          <button onClick={next}>
+          <button onClick={() => dispatch(next())}>
             <NextIcon
               color="rgba(107, 114, 128, var(--tw-bg-opacity))"
               width="25px"
@@ -58,7 +68,7 @@ const SettingButtons: React.FC = () => {
       </div>
       <div className="px-3">
         <Tippy content="Last Move">
-          <button onClick={lastMove}>
+          <button onClick={() => dispatch(lastMove())}>
             <StepForwardIcon
               color="rgba(107, 114, 128, var(--tw-bg-opacity))"
               width="25px"

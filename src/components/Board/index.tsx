@@ -1,21 +1,18 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect } from 'react';
 import { useAppDispatch, useAppSelector } from 'src/store/hooks';
-import {
-  generateSquareName,
-  getSquarePosition,
-  getSquarePosOnBoard,
-} from 'src/utils/helpers';
+import { generateSquareName, getSquarePosOnBoard } from 'src/utils/helpers';
 import Hint from '../Hint';
 import Piece from 'src/components/Piece';
 import styles from './index.module.css';
 import PromotionModalBox from '../PromotionModalBox';
 import { back } from 'src/store/historyStore/historySlice';
 import Highlight from '../Highlight';
-import { mark, move } from 'src/store/gameStore/gameSlice';
+import { mark } from 'src/store/gameStore/gameSlice';
 
 const Board: React.FC = () => {
-  const { pieces, perspective, highlights, hints, focusedPieceId } =
-    useAppSelector((state) => state.gameStore);
+  const { pieces, perspective, highlights, hints } = useAppSelector(
+    (state) => state.gameStore
+  );
 
   const dispatch = useAppDispatch();
 
@@ -54,6 +51,7 @@ const Board: React.FC = () => {
     });
   };
 
+  // FIXME: fix highlight for perspective chage
   const onBoardRightClicked: React.MouseEventHandler<HTMLDivElement> = (e) => {
     e.preventDefault();
     const { x, y } = e.currentTarget.getBoundingClientRect();

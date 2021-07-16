@@ -1,39 +1,24 @@
-import { PieceSymbol } from 'chess.ts';
-import React, { useEffect, useState } from 'react';
-import { useHistory } from 'react-router-dom';
+import React, { useEffect } from 'react';
 import AudioPlayer from 'src/components/AudioPlayer';
 import Board from 'src/components/Board';
 import GameInfo from 'src/components/GameInfo';
-import MoveList from 'src/components/MoveList';
-import SettingButtons from 'src/components/SettingButtons';
 import Settings from 'src/components/Settings';
 import Logo from 'src/components/utils/Logo';
-import SearchingIcon from 'src/components/utils/SearchinIcon';
 import { findBestMove, watch } from 'src/services/stockfish.service';
-import {
-  cancelSearch as cancel,
-  getFen,
-  makeBotMove,
-  setPlayingAudios,
-  startWithBot,
-} from 'src/store/gameStore/gameSlice';
+import { getFen, makeBotMove } from 'src/store/gameStore/gameSlice';
 import { useAppDispatch, useAppSelector } from 'src/store/hooks';
-import { setModalContent } from 'src/store/modalContent/modalContentSlice';
+import { PieceSymbol } from 'chess.ts';
 import { ModalContentType } from 'src/types';
-import styles from './index.module.css';
 import MobileView from './MobileView';
+import { setModalContent } from 'src/store/modalContent/modalContentSlice';
+import styles from './index.module.css';
 
 const Game: React.FC = () => {
   const dispatch = useAppDispatch();
-  const history = useHistory();
 
   const { result, id, turn, opponent, player } = useAppSelector(
     (state) => state.gameStore
   );
-
-  useEffect(() => {
-    dispatch(setPlayingAudios(['start']));
-  }, [dispatch]);
 
   useEffect(() => {
     if (result) {

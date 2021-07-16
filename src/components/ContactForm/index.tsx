@@ -29,8 +29,8 @@ const ContactForm: React.FC = () => {
     setFormData(initialFormData);
     try {
       await sendMail({
-        from_email: formData.email!,
-        from_name: formData.name!,
+        from_email: formData.email,
+        from_name: formData.name,
         message: formData.body,
       });
       showEmailSentMessage();

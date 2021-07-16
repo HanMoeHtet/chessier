@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import { useEffect } from 'react';
 import { setUpUI } from 'src/services/firebase-ui.service';
 import 'src/assets/css/firebase-ui-auth.css';
 import Logo from 'src/components/utils/Logo';

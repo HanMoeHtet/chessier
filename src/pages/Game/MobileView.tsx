@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import Board from 'src/components/Board';
 import GameActions from 'src/components/GameActions';
 import MoveList from 'src/components/MoveList';
-import PlayersInfo from 'src/components/PlayersInfo';
 import RatingSystem from 'src/components/RatingSystem';
 import SettingButtons from 'src/components/SettingButtons';
 import Divider from 'src/components/utils/Divider';

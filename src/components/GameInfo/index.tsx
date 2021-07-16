@@ -1,12 +1,6 @@
 import React, { useEffect } from 'react';
-import { useHistory } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from 'src/store/hooks';
-import {
-  resign as resignGame,
-  offerDraw as offerDrawGame,
-  acceptDraw,
-  declineDraw,
-} from 'src/store/gameStore/gameSlice';
+import { acceptDraw, declineDraw } from 'src/store/gameStore/gameSlice';
 import PlayersInfo from '../PlayersInfo';
 import RatingSystem from '../RatingSystem';
 import {
@@ -20,7 +14,6 @@ const GameInfo: React.FC = () => {
     (state) => state.gameStore
   );
 
-  const history = useHistory();
   const dispatch = useAppDispatch();
 
   useEffect(() => {

@@ -35,7 +35,6 @@ import {
   calculateRatingSystem,
   generateSquareName,
   getInitialPieces,
-  getPieceId,
   getRookId,
   getSquarePosition,
 } from 'src/utils/helpers';
@@ -198,7 +197,7 @@ export const start =
       const { user } = getState().authStore;
       const authUserId = user?.uid!;
       watchGame(gameData.id, (data: GameData) => {
-        const { status, winner, black, white, offerer } = data;
+        const { status, winner, offerer } = data;
         switch (status) {
           case GameDataStatus.OFFERED_DRAW:
             if (offerer !== authUserId) {
@@ -237,6 +236,7 @@ export const start =
         perspective: gameData.white === authUserId ? 'w' : 'b',
         opponent,
         ratingSystem: calculateRatingSystem(user!.rating, opponent.rating),
+        playingAudios: ['start'],
       };
       dispatch(setGameState(state));
       dispatch(setCurrentIndex(0));
@@ -270,6 +270,7 @@ export const startWithBot =
         id: 'bot',
         perspective: isPlayerWhite ? 'w' : 'b',
         opponent,
+        playingAudios: ['start'],
       };
       dispatch(setGameState(state));
       dispatch(setCurrentIndex(0));
@@ -442,6 +443,9 @@ export const declineDraw = (): AppThunk => async (dispatch, getState) => {
   updateGame(id!, { status: GameDataStatus.DRAW_DECLINED });
 };
 
+/**
+ * TODO: Skip modal dialog box for bot's move
+ */
 export const makeBotMove =
   (move: PartialMove): AppThunk =>
   (dispatch, getState) => {
@@ -477,6 +481,7 @@ export const makeMove =
     }
   };
 
+// FIXME: Fix promotion process
 export const _makeMove =
   (pieceIds: number[], gameMove: Move): AppThunk =>
   (dispatch) => {
@@ -506,7 +511,7 @@ export const _makeMove =
 export const move =
   (pieceIds: number[], move: Move): AppThunk =>
   async (dispatch, getState) => {
-    const { focusedPieceId, pieces, turn, player } = getState().gameStore;
+    const { pieces, turn, player } = getState().gameStore;
     game.move(move);
     dispatch(setAnimatingPieceIds(pieceIds));
     const playingAudios: AudioType[] = game.inCheck()
@@ -574,7 +579,7 @@ export const capture =
       playingAudios.push('end');
     }
     dispatch(setPlayingAudios(playingAudios));
-    const { focusedPieceId, pieces } = getState().gameStore;
+    const { pieces } = getState().gameStore;
     const pos = getSquarePosition(move.to);
     let _pieces = pieces.map((piece) => {
       if (piece.id === pieceIds[0]) {
@@ -634,7 +639,7 @@ export const enPassant =
       playingAudios.push('end');
     }
     dispatch(setPlayingAudios(playingAudios));
-    const { focusedPieceId, pieces } = getState().gameStore;
+    const { pieces } = getState().gameStore;
     const pos = getSquarePosition(move.to);
     let _pieces = pieces.map((piece) => {
       if (piece.id === pieceIds[0]) {
@@ -685,7 +690,7 @@ export const kingSideCastle =
   (pieceIds: number[], move: Move): AppThunk =>
   async (dispatch, getState) => {
     game.move(move);
-    const { focusedPieceId, pieces, turn } = getState().gameStore;
+    const { pieces, turn } = getState().gameStore;
     const rookId = getRookId({ row: turn === 'w' ? 7 : 0, col: 7 });
     dispatch(setAnimatingPieceIds([...pieceIds, rookId]));
     const playingAudios: AudioType[] = game.inCheck()
@@ -755,7 +760,7 @@ export const queenSideCastle =
   (pieceIds: number[], move: Move): AppThunk =>
   async (dispatch, getState) => {
     game.move(move);
-    const { focusedPieceId, pieces, turn } = getState().gameStore;
+    const { pieces, turn } = getState().gameStore;
     const rookId = getRookId({ row: turn === 'w' ? 7 : 0, col: 7 });
     dispatch(setAnimatingPieceIds([...pieceIds, rookId]));
     const playingAudios: AudioType[] = game.inCheck()
@@ -842,7 +847,7 @@ export const promote =
       playingAudios.push('end');
     }
     dispatch(setPlayingAudios(playingAudios));
-    const { focusedPieceId, pieces } = getState().gameStore;
+    const { pieces } = getState().gameStore;
     dispatch(hidePromotionModalBox());
     const pos = getSquarePosition(move.to);
     let _pieces = pieces.map((piece) => {

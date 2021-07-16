@@ -1,5 +1,5 @@
 import React from 'react';
-import SearchingIcon from 'src/components/utils/SearchinIcon';
+import SearchingIcon from 'src/components/utils/SearchingIcon';
 import { cancelSearch } from 'src/store/gameStore/gameSlice';
 import { useAppDispatch } from 'src/store/hooks';
 import { setModalContent } from 'src/store/modalContent/modalContentSlice';

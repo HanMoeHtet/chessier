@@ -9,9 +9,7 @@ import Result from '../Result';
 const AppModal: React.FC = () => {
   const [target, setTarget] = useState<HTMLDivElement | null>(null);
 
-  const { backgroundColor, content } = useAppSelector(
-    (state) => state.modalContentStore
-  );
+  const { content } = useAppSelector((state) => state.modalContentStore);
   const dispatch = useAppDispatch();
 
   useEffect(() => {

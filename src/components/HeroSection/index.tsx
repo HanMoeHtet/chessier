@@ -9,7 +9,7 @@ const HeroSection: React.FC = () => {
         <h3 className="text-center text-4xl text-white py-10">
           Have some fun playing the most watched game on Twitch in 2020
         </h3>
-        <div className="mb-24">
+        <div className="" style={{ marginBottom: '20%' }}>
           <PlayNowButton />
         </div>
       </div>

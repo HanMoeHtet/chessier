@@ -408,7 +408,7 @@ export const mark =
         (highlight) => getSquareName(highlight.pos) !== getSquareName(pos)
       )
       .concat({ color, pos });
-    dispatch(setHighlights([...highlights, ...newHighlights]));
+    dispatch(setHighlights(newHighlights));
   };
 
 export const cancel = (): AppThunk => (dispatch) => {

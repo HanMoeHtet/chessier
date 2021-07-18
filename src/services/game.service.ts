@@ -102,25 +102,38 @@ export const undo = () => {
   game?.undo();
 };
 
-// interface PositionOnBoard {
-//   x: number;
-//   y: number;
-// }
+interface Coords {
+  x: number;
+  y: number;
+}
 
-// /**
-//  * @deprecated
-//  * FIXME: Avoid using SQUARE_WIDTH
-//  */
-// export const getSquarePosOnBoard = (
-//   boardPos: PositionOnBoard,
-//   mousePos: PositionOnBoard
-// ): Position => {
-//   let row, col;
-//   col = Math.floor((mousePos.x - boardPos.x) / SQUARE_WIDTH);
-//   row = Math.floor((mousePos.y - boardPos.y) / SQUARE_WIDTH);
+interface GetSquarePosOnBoardOptions {
+  board: HTMLDivElement;
+  mousePos: Coords;
+  flipped?: boolean;
+}
 
-//   return { row, col };
-// };
+export const getSquarePosOnBoard = ({
+  board,
+  mousePos,
+  flipped = false,
+}: GetSquarePosOnBoardOptions): Position => {
+  const { x, y } = board.getBoundingClientRect();
+  const boardPos = { x, y };
+
+  let row, col;
+  col = Math.floor(
+    (mousePos.x - boardPos.x) / (board.clientWidth / BOARD_SIZE)
+  );
+  row = Math.floor(
+    (mousePos.y - boardPos.y) / (board.clientHeight / BOARD_SIZE)
+  );
+  if (flipped) {
+    row = BOARD_SIZE - row - 1;
+    col = BOARD_SIZE - col - 1;
+  }
+  return { row, col };
+};
 
 export const calculateRatingSystem = (
   playerRating: number,

@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { useAppDispatch, useAppSelector } from 'src/store/hooks';
-import { getSquareName } from 'src/services/game.service';
+import { getSquareName, getSquarePosOnBoard } from 'src/services/game.service';
 import Hint from '../Hint';
 import Piece from 'src/components/Piece';
 import styles from './index.module.css';
@@ -48,17 +48,15 @@ const Board: React.FC = () => {
     });
   };
 
-  // FIXME: fix highlight for perspective chage
   const onBoardRightClicked: React.MouseEventHandler<HTMLDivElement> = (e) => {
     e.preventDefault();
-    // const { x, y } = e.currentTarget.getBoundingClientRect();
-    // const boardPos = { x, y };
-
-    // const { clientX, clientY } = e;
-    // const mousePos = { x: clientX, y: clientY };
-
-    // const squarePos = getSquarePosOnBoard(boardPos, mousePos);
-    // dispatch(mark('red', squarePos));
+    const { clientX, clientY } = e;
+    const squarePos = getSquarePosOnBoard({
+      board: e.currentTarget,
+      mousePos: { x: clientX, y: clientY },
+      flipped: perspective !== 'w',
+    });
+    dispatch(mark('red', squarePos));
   };
 
   return (

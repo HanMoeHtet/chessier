@@ -1,8 +1,4 @@
-import {
-  cancel,
-  focus,
-  setAnimatingPieceIds,
-} from 'src/store/gameStore/gameSlice';
+import { focus, setAnimatingPieceIds } from 'src/store/gameStore/gameSlice';
 import { useAppDispatch, useAppSelector } from 'src/store/hooks';
 import { Piece as PieceType } from 'src/types';
 import styles from './index.module.css';

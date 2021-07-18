@@ -142,13 +142,12 @@ export const lastMove = (): AppThunk => (dispatch, getState) => {
   dispatch(goto(getState().historyStore.history.length - 1));
 };
 
-export const getPrevMove =
-  (): AppThunk<Move | null> => (dispatch, getState) => {
-    const { currentIndex, history } = getState().historyStore;
-    let state;
-    if (!(state = history[currentIndex - 1])) return null;
-    return state.move;
-  };
+export const getPrevMove = (): AppThunk<Move | null> => (_, getState) => {
+  const { currentIndex, history } = getState().historyStore;
+  let state;
+  if (!(state = history[currentIndex])) return null;
+  return state.move;
+};
 
 export const getPrevMoveHighlights =
   (): AppThunk<Highlight[]> => (dispatch) => {

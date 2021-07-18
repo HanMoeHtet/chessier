@@ -99,11 +99,13 @@ export const updateGame = async (id: string, data: any) => {
 };
 
 export const addGameMove = async (id: string, state: any) => {
-  await db
-    .collection('games')
-    .doc(id)
-    .update({
+  const docRef = await db.collection('games').doc(id);
+  const data = (await docRef.get()).data();
+  if (data) {
+    const history = data.history as [];
+    docRef.update({
       status: GameDataStatus.MADE_MOVE,
-      history: firebase.firestore.FieldValue.arrayUnion(state),
+      history: [...history, state],
     });
+  }
 };

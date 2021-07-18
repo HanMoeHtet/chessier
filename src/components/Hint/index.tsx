@@ -1,5 +1,5 @@
 import React from 'react';
-import { makeMove } from 'src/store/gameStore/gameSlice';
+import { makeMove, showPromotionModalBox } from 'src/store/gameStore/gameSlice';
 import { useAppDispatch } from 'src/store/hooks';
 import { Hint as HintType } from 'src/types';
 import { getSquarePosition } from 'src/services/game.service';
@@ -13,7 +13,8 @@ const Hint: React.FC<Props> = ({ move }) => {
   const dispatch = useAppDispatch();
 
   const handleClick = () => {
-    dispatch(makeMove(move));
+    if (move.flags.includes('p')) dispatch(showPromotionModalBox(move));
+    else dispatch(makeMove(move));
   };
 
   return (

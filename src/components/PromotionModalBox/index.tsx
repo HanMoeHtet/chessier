@@ -2,7 +2,7 @@ import React from 'react';
 import styles from './index.module.css';
 import pieceStyles from '../Piece/index.module.css';
 import { useAppDispatch, useAppSelector } from 'src/store/hooks';
-import { promote, setPromotionData } from 'src/store/gameStore/gameSlice';
+import { makeMove, setPromotionData } from 'src/store/gameStore/gameSlice';
 import { PieceSymbol } from 'chess.ts';
 import { getSquarePosition } from 'src/services/game.service';
 
@@ -19,7 +19,7 @@ const PromotionModalBox: React.FC = () => {
   const pos = getSquarePosition(move.to);
 
   const onPieceClicked = (pieceName: PieceSymbol) => {
-    dispatch(promote(move, pieceName));
+    dispatch(makeMove({ ...move, promotion: pieceName }));
   };
 
   const onCloseButtonClicked = () => {

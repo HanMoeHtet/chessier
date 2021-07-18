@@ -54,7 +54,6 @@ import {
 import { AppThunk } from '..';
 import {
   addToHistory,
-  getPrevMove,
   getPrevMoveHighlights,
   setCurrentIndex,
   setHistory,
@@ -381,7 +380,8 @@ export const focus =
         (highlight) => getSquareName(highlight.pos) === getSquareName(pos)
       )
     ) {
-      dispatch(setHighlights(prevMoveHighlights));
+      dispatch(cancel());
+      return;
     } else {
       dispatch(setHighlights([...prevMoveHighlights, { pos, color: 'blue' }]));
     }
@@ -423,10 +423,6 @@ export const cancel = (): AppThunk => (dispatch) => {
 export const makeBotMove =
   (move: PartialMove): AppThunk =>
   (dispatch, getState) => {
-    const { pieces } = getState().gameStore;
-    const pieceIds = [
-      pieces.find((piece) => getSquareName(piece.pos) === move.from)?.id!,
-    ];
     const moves = getMoves(move.from);
     move = {
       ...moves.find((_move) => _move.to === move.to)!,
@@ -467,7 +463,7 @@ export const _makeMove =
         break;
       case 'cp':
       case 'np':
-        dispatch(showPromotionModalBox(gameMove));
+        dispatch(promote(gameMove));
         break;
       case 'k':
         dispatch(kingSideCastle(gameMove));
@@ -530,8 +526,6 @@ export const afterMove =
     dispatch(setTurn(getTurn())); // Set player's turn
     dispatch(cancel()); // Cancel focus to remove highlights and hints
     // Highlight previous moves
-    const prevMoveHighlights = dispatch(getPrevMoveHighlights());
-    dispatch(setHighlights(prevMoveHighlights));
   };
 
 export const move =
@@ -732,12 +726,9 @@ export const queenSideCastle =
   };
 
 export const promote =
-  (move: Move, pieceName: PieceSymbol): AppThunk =>
+  (move: Move): AppThunk =>
   (dispatch, getState) => {
-    move = {
-      ...move,
-      promotion: pieceName,
-    };
+    if (!move.promotion) throw Error('');
     const result = dispatch(beforeMove({ defaultAudios: ['promote'], move }));
     if (result === false) return;
     const { currentPiece, playingAudios } = result;
@@ -768,7 +759,7 @@ export const promote =
         })
         .map((piece) => {
           if (piece.id === currentPiece.id) {
-            return { ...piece, type: pieceName };
+            return { ...piece, type: move.promotion! };
           }
           return piece;
         });
@@ -782,7 +773,7 @@ export const promote =
 export const showPromotionModalBox =
   (move: Move): AppThunk =>
   (dispatch) => {
-    dispatch(setHints([]));
+    dispatch(cancel());
     dispatch(setPromotionData({ move }));
   };
 

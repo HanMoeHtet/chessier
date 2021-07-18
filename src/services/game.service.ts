@@ -1,8 +1,6 @@
 import { Chess, Move } from 'chess.ts';
 import { GameDataStatus, Piece, Position, RatingSystem } from 'src/types';
 import { BOARD_SIZE } from 'src/utils/constants';
-import { createNewGame as createGame } from 'src/services/firestore.servie';
-import { assert } from 'console';
 
 let game: Chess | null = null;
 const pieceIds = new Map<number, number>();

@@ -13,8 +13,10 @@ const AudioPlayer: React.FC = () => {
 
   useEffect(() => {
     (async () => {
-      const audio1 = audioRefs.current.get(playingAudios[0]);
-      const audio2 = audioRefs.current.get(playingAudios[1]);
+      const audio1 =
+        playingAudios[0] && audioRefs.current.get(playingAudios[0]);
+      const audio2 =
+        playingAudios[1] && audioRefs.current.get(playingAudios[1]);
       if (audio1) {
         try {
           await audio1.play();

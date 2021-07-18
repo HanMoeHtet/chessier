@@ -1,6 +1,17 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { Move, PartialMove, PieceSymbol } from 'chess.ts';
-import { createNewGame } from 'src/services/game.service';
+import {
+  createNewGame,
+  getInitialPieces,
+  getMoves,
+  getTurn,
+  isInCheck,
+  isInCheckMate,
+  isInDraw,
+  setUpNewGame,
+  makeMove as makeGameMove,
+  getPieceIdFromInitialPosition,
+} from 'src/services/game.service';
 import {
   createNewGame as createGame,
   watchGame,
@@ -16,7 +27,10 @@ import {
   updateGame,
 } from 'src/services/firestore.servie';
 import {
+  AfterMoveData,
   AudioType,
+  BeforeMoveData,
+  BeforeMoveReturnData,
   Bot,
   Color,
   GameData,
@@ -26,6 +40,7 @@ import {
   Highlight,
   Hint,
   Piece,
+  Player,
   Position,
   PromotionData,
   RatingSystem,
@@ -33,63 +48,50 @@ import {
 } from 'src/types';
 import {
   calculateRatingSystem,
-  generateSquareName,
-  getInitialPieces,
-  getRookId,
+  getSquareName,
   getSquarePosition,
-} from 'src/utils/helpers';
+} from 'src/services/game.service';
 import { AppThunk } from '..';
 import {
   addToHistory,
+  getPrevMove,
+  getPrevMoveHighlights,
   setCurrentIndex,
   setHistory,
 } from '../historyStore/historySlice';
 import StockfishLogo from 'src/assets/images/stockfish.png';
-
-export let game = createNewGame();
+import { setWaitingRoomId } from '../waitingRoomStore/waitinRoomSlice';
+import { DEFAULT_UERNAME } from 'src/utils/constants';
 
 const initialState: GameState = {
-  id: null,
-  roomId: null,
   pieces: getInitialPieces(),
-  focusedPieceId: null,
   hints: [],
-  highlights: { prevMoves: [], marked: [] },
-  turn: game.turn(),
-  promotionData: null,
+  highlights: [],
   perspective: 'w',
   animatingPieceIds: [],
   playingAudios: [],
-  player: null,
-  opponent: null,
 };
 
 export const gameSlice = createSlice({
   name: 'game',
   initialState,
   reducers: {
-    setGameState(state, action: PayloadAction<GameState>) {
+    setGameState(_, action: PayloadAction<GameState>) {
       return action.payload;
-    },
-    setFocusedPieceId(state, action: PayloadAction<number | null>) {
-      state.focusedPieceId = action.payload;
     },
     setHints(state, action: PayloadAction<Hint[]>) {
       state.hints = action.payload;
     },
-    setHighlights(
-      state,
-      action: PayloadAction<{ prevMoves: Highlight[]; marked: Highlight[] }>
-    ) {
+    setHighlights(state, action: PayloadAction<Highlight[]>) {
       state.highlights = action.payload;
     },
     setPieces(state, action: PayloadAction<Piece[]>) {
       state.pieces = action.payload;
     },
-    setTurn(state, action: PayloadAction<string>) {
+    setTurn(state, action: PayloadAction<'w' | 'b'>) {
       state.turn = action.payload;
     },
-    setPromotionData(state, action: PayloadAction<null | PromotionData>) {
+    setPromotionData(state, action: PayloadAction<PromotionData | undefined>) {
       state.promotionData = action.payload;
     },
     setPerspective(state, action: PayloadAction<'w' | 'b'>) {
@@ -103,12 +105,6 @@ export const gameSlice = createSlice({
     },
     setGameId(state, action: PayloadAction<string>) {
       state.id = action.payload;
-    },
-    setPlayer(state, action: PayloadAction<'w' | 'b' | null>) {
-      state.player = action.payload;
-    },
-    setRoomId(state, action: PayloadAction<string | null>) {
-      state.roomId = action.payload;
     },
     setIsDrawBeingOffered(state, action: PayloadAction<boolean>) {
       state.isDrawBeingOffered = action.payload;
@@ -130,7 +126,6 @@ export const gameSlice = createSlice({
 
 export const {
   setGameState,
-  setFocusedPieceId,
   setHints,
   setHighlights,
   setPieces,
@@ -140,34 +135,38 @@ export const {
   setPlayingAudios,
   setAnimatingPieceIds,
   setGameId,
-  setPlayer,
-  setRoomId,
   setIsDrawBeingOffered,
   setWinner,
   setResult,
   setWasDrawDeclined,
 } = gameSlice.actions;
 
-export const findMatch = (): AppThunk => async (dispatch, getState) =>
-  new Promise<void>(async (resolve) => {
+export const findMatch = (): AppThunk<Promise<void>> => (dispatch, getState) =>
+  new Promise<void>(async (resolve, reject) => {
     const playerId = getState().authStore.user?.uid!;
+    // TODO: Replace with actual matchmaking logic
+    // Find waiting room in db
     const room = await findInWaitingRooms((data) => true);
     if (room) {
-      const opponentId = room.playerId;
-      const isPlayerWhite = Math.floor(Math.random() * 2) === 0;
-      const gameData = {
-        black: isPlayerWhite ? opponentId : playerId,
-        white: isPlayerWhite ? playerId : opponentId,
-        history: [],
-        status: GameDataStatus.START,
-      };
+      // Match found
+      // Set up new game
+      const gameData = setUpNewGame(playerId, room.playerId);
+      // Create game in db
       const gameId = await createGame(gameData);
+      // Pass game data to waiting room
+      // to share with another player
       updateWaitingRoom(room.id, { ...gameData, gameId });
+      // Start the game
       await dispatch(start({ ...gameData, id: gameId }));
       resolve();
     } else {
+      // Match not found
+      // Create new room in db
       const roomId = await addWaitingRoom(playerId);
-      dispatch(setRoomId(roomId));
+      // Store room id so that it can be deleted later
+      dispatch(setWaitingRoomId(roomId));
+      // Watch for the data
+      // and start the game when game data is set
       watchWaitingRoom(roomId, async (roomData) => {
         if (!roomData.gameId) return;
         const { black, white, history, gameId: id } = roomData;
@@ -182,22 +181,22 @@ export const findMatch = (): AppThunk => async (dispatch, getState) =>
   });
 
 export const cancelSearch = (): AppThunk => (dispatch, getState) => {
-  const roomId = getState().gameStore.roomId;
+  const roomId = getState().waitingRoomStore.id;
   if (!roomId) return;
   unsbuscribeWaitingRoom(roomId);
   deleteWaitingRoom(roomId);
-  setRoomId(null);
+  setWaitingRoomId(null);
 };
 
 export const start =
-  (gameData: GameData): AppThunk =>
+  (gameData: GameData): AppThunk<Promise<void>> =>
   async (dispatch, getState) =>
     new Promise<void>(async (resolve) => {
-      game = createNewGame();
+      createNewGame();
       const { user } = getState().authStore;
       const authUserId = user?.uid!;
       watchGame(gameData.id, (data: GameData) => {
-        const { status, winner, offerer } = data;
+        const { status, winner, offerer, history } = data;
         switch (status) {
           case GameDataStatus.OFFERED_DRAW:
             if (offerer !== authUserId) {
@@ -217,8 +216,10 @@ export const start =
             dispatch(setPlayingAudios(['end']));
             break;
           case GameDataStatus.MADE_MOVE:
-            const { move, pieceIds } = data.history[data.history.length - 1];
-            dispatch(_makeMove(pieceIds, move));
+            const state = history[history.length - 1];
+            if (!state) break;
+            const { move } = state;
+            dispatch(_makeMove(move));
             break;
           case GameDataStatus.START:
             break;
@@ -226,16 +227,19 @@ export const start =
             throw Error('Invalid Data');
         }
       });
-      const opponent = await addOrRetriveUser(
-        gameData.white === authUserId ? gameData.black : gameData.white
-      );
+      const white = await addOrRetriveUser(gameData.white);
+      const black = await addOrRetriveUser(gameData.black);
+      const opponent = authUserId === white.uid ? black : white;
       const state: GameState = {
         ...initialState,
-        player: gameData.white === authUserId ? 'w' : 'b',
+        turn: getTurn(),
+        white,
+        black,
+        opponent,
+        playerColor: gameData.white === authUserId ? 'w' : 'b',
         id: gameData.id,
         perspective: gameData.white === authUserId ? 'w' : 'b',
-        opponent,
-        ratingSystem: calculateRatingSystem(user!.rating, opponent.rating),
+        ratingSystem: calculateRatingSystem(white.rating, black.rating),
         playingAudios: ['start'],
       };
       dispatch(setGameState(state));
@@ -257,7 +261,11 @@ export const startWithBot =
   (level: string): AppThunk =>
   (dispatch, getState) =>
     new Promise<void>((resolve) => {
-      game = createNewGame();
+      createNewGame();
+      const { user } = getState().authStore;
+      const player: Player = user || {
+        displayName: DEFAULT_UERNAME,
+      };
       const opponent: Bot = {
         displayName: 'Stockfish',
         level,
@@ -266,11 +274,14 @@ export const startWithBot =
       const isPlayerWhite = Math.floor(Math.random() * 2) === 0;
       const state: GameState = {
         ...initialState,
-        player: isPlayerWhite ? 'w' : 'b',
         id: 'bot',
+        turn: getTurn(),
+        white: isPlayerWhite ? player : opponent,
+        black: isPlayerWhite ? opponent : player,
+        playerColor: isPlayerWhite ? 'w' : 'b',
         perspective: isPlayerWhite ? 'w' : 'b',
-        opponent,
         playingAudios: ['start'],
+        opponent,
       };
       dispatch(setGameState(state));
       dispatch(setCurrentIndex(0));
@@ -357,72 +368,438 @@ export const destory = (): AppThunk => (dispatch) => {
 };
 
 export const focus =
-  (pieceId: number, pos: Position): AppThunk =>
+  (pieceId: number): AppThunk =>
   async (dispatch, getState) => {
-    const { highlights, turn, player } = getState().gameStore;
-    if (turn !== player) {
-      dispatch(cancel());
+    const { pieces, highlights, playerColor } = getState().gameStore;
+    const piece = pieces.find((piece) => piece.id === pieceId);
+    if (!piece) return;
+    const pos = piece.pos;
+    // Set highlights
+    const prevMoveHighlights = dispatch(getPrevMoveHighlights());
+    if (
+      highlights.find(
+        (highlight) => getSquareName(highlight.pos) === getSquareName(pos)
+      )
+    ) {
+      dispatch(setHighlights(prevMoveHighlights));
+    } else {
+      dispatch(setHighlights([...prevMoveHighlights, { pos, color: 'blue' }]));
+    }
+    // Set hints
+    if (getTurn() !== playerColor) {
       return;
     }
-    dispatch(setFocusedPieceId(pieceId));
-    dispatch(
-      setHighlights({ ...highlights, marked: [{ pos, color: 'blue' }] })
-    );
-    const hints = game
-      .moves({
-        square: generateSquareName(pos),
-        verbose: true,
-      })
-      .reduce((prev: Hint[], cur) => {
-        if (!prev.find((hint) => hint.move.to === cur.to)) {
-          const pieceIds = [pieceId];
-          prev.push({ move: cur, pieceIds });
-        }
-        return prev;
-      }, []);
+    const hints = getMoves(getSquareName(pos)).reduce((prev: Hint[], cur) => {
+      if (!prev.find((hint) => hint.move.to === cur.to)) {
+        prev.push({ move: cur });
+      }
+      return prev;
+    }, []);
     dispatch(setHints(hints));
   };
 
 export const mark =
   (color: Color = 'red', pos: Position): AppThunk =>
   (dispatch, getState) => {
-    const { highlights, focusedPieceId } = getState().gameStore;
-    let _highlights;
-    if (focusedPieceId) {
-      dispatch(cancel());
-      dispatch(setHighlights({ ...highlights, marked: [{ color, pos }] }));
+    const { highlights } = getState().gameStore;
+    dispatch(setHints([]));
+    const newHighlights = highlights
+      .filter(
+        (highlight) => getSquareName(highlight.pos) !== getSquareName(pos)
+      )
+      .concat({ color, pos });
+    dispatch(setHighlights([...highlights, ...newHighlights]));
+  };
+
+export const cancel = (): AppThunk => (dispatch) => {
+  dispatch(setHints([]));
+  const prevMoveHighlights = dispatch(getPrevMoveHighlights());
+  dispatch(setHighlights(prevMoveHighlights));
+};
+
+/**
+ * TODO: Skip modal dialog box for bot's move
+ */
+export const makeBotMove =
+  (move: PartialMove): AppThunk =>
+  (dispatch, getState) => {
+    const { pieces } = getState().gameStore;
+    const pieceIds = [
+      pieces.find((piece) => getSquareName(piece.pos) === move.from)?.id!,
+    ];
+    const moves = getMoves(move.from);
+    move = {
+      ...moves.find((_move) => _move.to === move.to)!,
+      promotion: move.promotion,
+    };
+    const interval = setInterval(() => {
+      const { playingAudios, animatingPieceIds } = getState().gameStore;
+      if (playingAudios.length === 0 && animatingPieceIds.length === 0) {
+        clearInterval(interval);
+        dispatch(makeMove(move as Move));
+      }
+    }, 500);
+  };
+
+export const makeMove =
+  (gameMove: Move): AppThunk =>
+  (dispatch, getState) => {
+    const { id } = getState().gameStore;
+    if (id === 'bot') {
+      dispatch(_makeMove(gameMove));
     } else {
-      _highlights = highlights.marked
-        .filter(
-          (highlight) =>
-            generateSquareName(highlight.pos) !== generateSquareName(pos)
-        )
-        .concat({ color, pos });
-      dispatch(setHighlights({ ...highlights, marked: _highlights }));
+      addGameMove(id!, {
+        move: JSON.parse(JSON.stringify(gameMove)),
+      });
     }
   };
 
-export const cancel = (): AppThunk => (dispatch, getState) => {
-  dispatch(setFocusedPieceId(null));
-  dispatch(setHints([]));
-  dispatch(
-    setHighlights({
-      marked: [],
-      prevMoves: getState().gameStore.highlights.prevMoves,
-    })
-  );
+// FIXME: Fix promotion process
+export const _makeMove =
+  (gameMove: Move): AppThunk =>
+  (dispatch) => {
+    switch (gameMove.flags) {
+      case 'e':
+        dispatch(enPassant(gameMove));
+        break;
+      case 'c':
+        dispatch(capture(gameMove));
+        break;
+      case 'cp':
+      case 'np':
+        dispatch(showPromotionModalBox(gameMove));
+        break;
+      case 'k':
+        dispatch(kingSideCastle(gameMove));
+        break;
+      case 'q':
+        dispatch(queenSideCastle(gameMove));
+        break;
+      default:
+        dispatch(move(gameMove));
+        break;
+    }
+  };
+
+export const beforeMove =
+  ({
+    move,
+    defaultAudios,
+    extraAnimatingPieceIds = [],
+  }: BeforeMoveData): AppThunk<BeforeMoveReturnData | false> =>
+  (dispatch, getState) => {
+    const { pieces } = getState().gameStore;
+    // Make move in game
+    if (!makeGameMove(move)) return false;
+    // Add audios
+    const playingAudios: AudioType[] = isInCheck()
+      ? ['moveCheck']
+      : defaultAudios;
+    const piece = pieces.find(
+      (piece) => getSquareName(piece.pos) === move.from
+    );
+    if (!piece) return false;
+    // Add animation
+    dispatch(setAnimatingPieceIds([piece.id, ...extraAnimatingPieceIds]));
+    return { currentPiece: piece, playingAudios };
+  };
+
+export const afterMove =
+  ({ playingAudios, currentPiece, pieces, move }: AfterMoveData): AppThunk =>
+  (dispatch, getState) => {
+    const { playerColor } = getState().gameStore;
+    // When game is over
+    if (isInCheckMate()) {
+      dispatch(end(getTurn() !== playerColor));
+      playingAudios.push('end');
+    }
+    if (isInDraw()) {
+      dispatch(end());
+      playingAudios.push('end');
+    }
+    // Add to history
+    dispatch(
+      addToHistory({
+        animatingPieceIds: [currentPiece.id],
+        playingAudios,
+        pieces,
+        move,
+      })
+    );
+    dispatch(setPlayingAudios(playingAudios)); // Set audios
+    dispatch(setTurn(getTurn())); // Set player's turn
+    dispatch(cancel()); // Cancel focus to remove highlights and hints
+    // Highlight previous moves
+    const prevMoveHighlights = dispatch(getPrevMoveHighlights());
+    dispatch(setHighlights(prevMoveHighlights));
+  };
+
+export const move =
+  (move: Move): AppThunk =>
+  async (dispatch, getState) => {
+    const { pieces, turn, playerColor } = getState().gameStore;
+    const result = dispatch(
+      beforeMove({
+        move,
+        defaultAudios: turn === playerColor ? ['moveSelf'] : ['moveOpponent'],
+      })
+    );
+    if (result === false) return;
+    const { currentPiece, playingAudios } = result;
+    // Move the piece
+    const pos = getSquarePosition(move.to);
+    let _pieces = pieces.map((_piece) => {
+      if (_piece.id === currentPiece.id) {
+        return {
+          ..._piece,
+          pos,
+        };
+      } else {
+        return _piece;
+      }
+    });
+    dispatch(setPieces(_pieces));
+    dispatch(afterMove({ currentPiece, move, pieces: _pieces, playingAudios }));
+  };
+
+export const capture =
+  (move: Move): AppThunk =>
+  async (dispatch, getState) => {
+    const { pieces } = getState().gameStore;
+    const result = dispatch(beforeMove({ move, defaultAudios: ['capture'] }));
+    if (result === false) return;
+    const { currentPiece, playingAudios } = result;
+    // Move the piece
+    const pos = getSquarePosition(move.to);
+    let _pieces = pieces.map((piece) => {
+      if (piece.id === currentPiece.id) {
+        return {
+          ...piece,
+          pos,
+        };
+      } else {
+        return piece;
+      }
+    });
+    dispatch(setPieces(_pieces));
+    // Cancel the foucus to remove hints and highlights
+    dispatch(cancel());
+    setTimeout(() => {
+      // Remove the target piece
+      _pieces = _pieces.filter((piece) => {
+        return (
+          getSquareName(piece.pos) !== move.to || piece.id === currentPiece.id
+        );
+      });
+      dispatch(setPieces(_pieces));
+      dispatch(
+        afterMove({ currentPiece, move, pieces: _pieces, playingAudios })
+      );
+    }, 200);
+  };
+
+export const enPassant =
+  (move: Move): AppThunk =>
+  async (dispatch, getState) => {
+    const result = dispatch(beforeMove({ defaultAudios: ['capture'], move }));
+    if (result === false) return;
+    const { currentPiece, playingAudios } = result;
+    const { pieces } = getState().gameStore;
+    // Move the piece
+    const pos = getSquarePosition(move.to);
+    let _pieces = pieces.map((piece) => {
+      if (piece.id === currentPiece.id) {
+        return {
+          ...piece,
+          pos,
+        };
+      } else {
+        return piece;
+      }
+    });
+    dispatch(setPieces(_pieces));
+    // Cancel the foucus to remove hints and highlights
+    dispatch(cancel());
+    setTimeout(() => {
+      // Remove the target piece
+      _pieces = _pieces.filter((piece) => {
+        const targetPos = {
+          row: pos.row + (getTurn() === 'w' ? -1 : 1),
+          col: pos.col,
+        };
+        return (
+          getSquareName(piece.pos) !== getSquareName(targetPos) ||
+          piece.id === currentPiece.id
+        );
+      });
+      dispatch(setPieces(_pieces));
+      dispatch(
+        afterMove({ currentPiece, move, pieces: _pieces, playingAudios })
+      );
+    }, 200);
+  };
+
+export const kingSideCastle =
+  (move: Move): AppThunk =>
+  async (dispatch, getState) => {
+    const { pieces, turn } = getState().gameStore;
+    // Get the rook from initial position sice it has not been moved
+    const rookMove = {
+      from: {
+        row: turn === 'w' ? 7 : 0,
+        col: 7,
+      },
+      to: {
+        row: turn === 'w' ? 7 : 0,
+        col: 5,
+      },
+    };
+    const rookId = getPieceIdFromInitialPosition(rookMove.from);
+    const result = dispatch(
+      beforeMove({
+        defaultAudios: ['castle'],
+        move,
+        extraAnimatingPieceIds: [rookId],
+      })
+    );
+    if (result === false) return;
+    const { currentPiece, playingAudios } = result;
+    // Move the piece
+    const pos = getSquarePosition(move.to);
+    let _pieces = pieces.map((piece) => {
+      if (piece.id === currentPiece.id) {
+        return {
+          ...piece,
+          pos,
+        };
+      } else if (getSquareName(rookMove.from) === getSquareName(piece.pos)) {
+        return {
+          ...piece,
+          pos: rookMove.to,
+        };
+      } else {
+        return piece;
+      }
+    });
+    dispatch(setPieces(_pieces));
+    dispatch(afterMove({ currentPiece, move, pieces: _pieces, playingAudios }));
+  };
+
+export const queenSideCastle =
+  (move: Move): AppThunk =>
+  async (dispatch, getState) => {
+    const { pieces, turn } = getState().gameStore;
+    // Get the rook from initial position sice it has not been moved
+    const rookPos = {
+      from: {
+        row: turn === 'w' ? 7 : 0,
+        col: 0,
+      },
+      to: {
+        row: turn === 'w' ? 7 : 0,
+        col: 3,
+      },
+    };
+    const rookId = getPieceIdFromInitialPosition(rookPos.from);
+    const result = dispatch(
+      beforeMove({
+        defaultAudios: ['castle'],
+        move,
+        extraAnimatingPieceIds: [rookId],
+      })
+    );
+    if (result === false) return;
+    const { currentPiece, playingAudios } = result;
+    // Move the piece
+    const pos = getSquarePosition(move.to);
+    let _pieces = pieces.map((piece) => {
+      if (piece.id === currentPiece.id) {
+        return {
+          ...piece,
+          pos,
+        };
+      } else if (getSquareName(rookPos.from) === getSquareName(piece.pos)) {
+        return {
+          ...piece,
+          pos: rookPos.to,
+        };
+      } else {
+        return piece;
+      }
+    });
+    dispatch(setPieces(_pieces));
+    dispatch(afterMove({ currentPiece, move, pieces: _pieces, playingAudios }));
+  };
+
+export const promote =
+  (move: Move, pieceName: PieceSymbol): AppThunk =>
+  (dispatch, getState) => {
+    move = {
+      ...move,
+      promotion: pieceName,
+    };
+    const result = dispatch(beforeMove({ defaultAudios: ['promote'], move }));
+    if (result === false) return;
+    const { currentPiece, playingAudios } = result;
+    const { pieces } = getState().gameStore;
+    // Hide the modal box
+    dispatch(hidePromotionModalBox());
+    // Move the piece
+    const pos = getSquarePosition(move.to);
+    let _pieces = pieces.map((piece) => {
+      if (piece.id === currentPiece.id) {
+        return {
+          ...piece,
+          pos,
+        };
+      } else {
+        return piece;
+      }
+    });
+    dispatch(setPieces(_pieces));
+    dispatch(cancel());
+    setTimeout(() => {
+      // Remove the target piece and change current piece to promoted piece
+      _pieces = _pieces
+        .filter((piece) => {
+          return (
+            getSquareName(piece.pos) !== move.to || piece.id === currentPiece.id
+          );
+        })
+        .map((piece) => {
+          if (piece.id === currentPiece.id) {
+            return { ...piece, type: pieceName };
+          }
+          return piece;
+        });
+      dispatch(setPieces(_pieces));
+      dispatch(
+        afterMove({ currentPiece, move, pieces: _pieces, playingAudios })
+      );
+    }, 200);
+  };
+
+export const showPromotionModalBox =
+  (move: Move): AppThunk =>
+  (dispatch) => {
+    dispatch(setHints([]));
+    dispatch(setPromotionData({ move }));
+  };
+
+export const hidePromotionModalBox = (): AppThunk => (dispatch) => {
+  dispatch(cancel());
+  dispatch(setPromotionData(undefined));
 };
 
-export const resign = (): AppThunk => async (dispatch, getState) => {
+export const resign = (): AppThunk => async (_, getState) => {
   const { id, opponent } = getState().gameStore;
-  console.log(opponent);
   await updateGame(id!, {
     status: GameDataStatus.RESIGNNED,
     winner: (opponent as UserData)?.uid,
   });
 };
 
-export const offerDraw = (): AppThunk => async (dispatch, getState) => {
+export const offerDraw = (): AppThunk => async (_, getState) => {
   const { id } = getState().gameStore;
   const { user } = getState().authStore;
   await updateGame(id!, {
@@ -443,480 +820,10 @@ export const declineDraw = (): AppThunk => async (dispatch, getState) => {
   updateGame(id!, { status: GameDataStatus.DRAW_DECLINED });
 };
 
-/**
- * TODO: Skip modal dialog box for bot's move
- */
-export const makeBotMove =
-  (move: PartialMove): AppThunk =>
-  (dispatch, getState) => {
-    const { pieces } = getState().gameStore;
-    const pieceIds = [
-      pieces.find((piece) => generateSquareName(piece.pos) === move.from)?.id!,
-    ];
-    const moves = game.moves({ square: move.from, verbose: true });
-    move = {
-      ...moves.find((_move) => _move.to === move.to)!,
-      promotion: move.promotion,
-    };
-    const interval = setInterval(() => {
-      const { playingAudios, animatingPieceIds } = getState().gameStore;
-      if (playingAudios.length === 0 && animatingPieceIds.length === 0) {
-        clearInterval(interval);
-        dispatch(makeMove(pieceIds, move as Move));
-      }
-    }, 500);
-  };
-
-export const makeMove =
-  (pieceIds: number[], gameMove: Move): AppThunk =>
-  (dispatch, getState) => {
-    const { id } = getState().gameStore;
-    if (id === 'bot') {
-      dispatch(_makeMove(pieceIds, gameMove));
-    } else {
-      addGameMove(id!, {
-        pieceIds,
-        move: JSON.parse(JSON.stringify(gameMove)),
-      });
-    }
-  };
-
-// FIXME: Fix promotion process
-export const _makeMove =
-  (pieceIds: number[], gameMove: Move): AppThunk =>
-  (dispatch) => {
-    switch (gameMove.flags) {
-      case 'e':
-        dispatch(enPassant(pieceIds, gameMove));
-        break;
-      case 'c':
-        dispatch(capture(pieceIds, gameMove));
-        break;
-      case 'cp':
-      case 'np':
-        dispatch(showPromotionModalBox(pieceIds, gameMove));
-        break;
-      case 'k':
-        dispatch(kingSideCastle(pieceIds, gameMove));
-        break;
-      case 'q':
-        dispatch(queenSideCastle(pieceIds, gameMove));
-        break;
-      default:
-        dispatch(move(pieceIds, gameMove));
-        break;
-    }
-  };
-
-export const move =
-  (pieceIds: number[], move: Move): AppThunk =>
-  async (dispatch, getState) => {
-    const { pieces, turn, player } = getState().gameStore;
-    game.move(move);
-    dispatch(setAnimatingPieceIds(pieceIds));
-    const playingAudios: AudioType[] = game.inCheck()
-      ? ['moveCheck']
-      : turn === player
-      ? ['moveSelf']
-      : ['moveOpponent'];
-    if (game.inCheckmate()) {
-      dispatch(end(game.turn() !== player));
-      playingAudios.push('end');
-    }
-    if (game.inDraw()) {
-      dispatch(end());
-      playingAudios.push('end');
-    }
-    dispatch(setPlayingAudios(playingAudios));
-    const pos = getSquarePosition(move.to);
-    let _pieces = pieces.map((piece) => {
-      if (piece.id === pieceIds[0]) {
-        return {
-          ...piece,
-          pos,
-        };
-      } else {
-        return piece;
-      }
-    });
-    dispatch(setPieces(_pieces));
-    dispatch(
-      addToHistory({
-        animatingPieceIds: pieceIds,
-        playingAudios,
-        pieces: _pieces,
-        move,
-      })
-    );
-    dispatch(setTurn(game.turn()));
-    dispatch(cancel());
-    dispatch(
-      setHighlights({
-        marked: [],
-        prevMoves: [
-          { pos, color: 'blue' },
-          { pos: getSquarePosition(move.from), color: 'blue' },
-        ],
-      })
-    );
-  };
-
-export const capture =
-  (pieceIds: number[], move: Move): AppThunk =>
-  async (dispatch, getState) => {
-    game.move(move);
-    dispatch(setAnimatingPieceIds(pieceIds));
-    const playingAudios: AudioType[] = game.inCheck()
-      ? ['moveCheck']
-      : ['capture'];
-    if (
-      game.inCheckmate() ||
-      game.inDraw() ||
-      game.inStalemate() ||
-      game.inThreefoldRepetition() ||
-      game.insufficientMaterial()
-    ) {
-      playingAudios.push('end');
-    }
-    dispatch(setPlayingAudios(playingAudios));
-    const { pieces } = getState().gameStore;
-    const pos = getSquarePosition(move.to);
-    let _pieces = pieces.map((piece) => {
-      if (piece.id === pieceIds[0]) {
-        return {
-          ...piece,
-          pos,
-        };
-      } else {
-        return piece;
-      }
-    });
-    dispatch(setPieces(_pieces));
-    dispatch(cancel());
-    setTimeout(() => {
-      _pieces = _pieces.filter((piece) => {
-        return (
-          generateSquareName(piece.pos) !== move.to || piece.id === pieceIds[0]
-        );
-      });
-      dispatch(setPieces(_pieces));
-      dispatch(
-        addToHistory({
-          animatingPieceIds: pieceIds,
-          playingAudios,
-          pieces: _pieces,
-          move,
-        })
-      );
-      dispatch(
-        setHighlights({
-          marked: [],
-          prevMoves: [
-            { pos, color: 'blue' },
-            { pos: getSquarePosition(move.from), color: 'blue' },
-          ],
-        })
-      );
-      dispatch(setTurn(game.turn()));
-    }, 200);
-  };
-
-export const enPassant =
-  (pieceIds: number[], move: Move): AppThunk =>
-  async (dispatch, getState) => {
-    game.move(move);
-    dispatch(setAnimatingPieceIds(pieceIds));
-    const playingAudios: AudioType[] = game.inCheck()
-      ? ['moveCheck']
-      : ['capture'];
-    if (
-      game.inCheckmate() ||
-      game.inDraw() ||
-      game.inStalemate() ||
-      game.inThreefoldRepetition() ||
-      game.insufficientMaterial()
-    ) {
-      playingAudios.push('end');
-    }
-    dispatch(setPlayingAudios(playingAudios));
-    const { pieces } = getState().gameStore;
-    const pos = getSquarePosition(move.to);
-    let _pieces = pieces.map((piece) => {
-      if (piece.id === pieceIds[0]) {
-        return {
-          ...piece,
-          pos,
-        };
-      } else {
-        return piece;
-      }
-    });
-    dispatch(setPieces(_pieces));
-    dispatch(cancel());
-    setTimeout(() => {
-      _pieces = _pieces.filter((piece) => {
-        const targetPos = {
-          row: pos.row + (game.turn() === 'w' ? -1 : 1),
-          col: pos.col,
-        };
-        return (
-          generateSquareName(piece.pos) !== generateSquareName(targetPos) ||
-          piece.id === pieceIds[0]
-        );
-      });
-      dispatch(setPieces(_pieces));
-      dispatch(
-        addToHistory({
-          animatingPieceIds: pieceIds,
-          playingAudios,
-          pieces: _pieces,
-          move,
-        })
-      );
-      dispatch(
-        setHighlights({
-          marked: [],
-          prevMoves: [
-            { pos, color: 'blue' },
-            { pos: getSquarePosition(move.from), color: 'blue' },
-          ],
-        })
-      );
-      dispatch(setTurn(game.turn()));
-    }, 200);
-  };
-
-export const kingSideCastle =
-  (pieceIds: number[], move: Move): AppThunk =>
-  async (dispatch, getState) => {
-    game.move(move);
-    const { pieces, turn } = getState().gameStore;
-    const rookId = getRookId({ row: turn === 'w' ? 7 : 0, col: 7 });
-    dispatch(setAnimatingPieceIds([...pieceIds, rookId]));
-    const playingAudios: AudioType[] = game.inCheck()
-      ? ['moveCheck']
-      : ['castle'];
-    if (
-      game.inCheckmate() ||
-      game.inDraw() ||
-      game.inStalemate() ||
-      game.inThreefoldRepetition() ||
-      game.insufficientMaterial()
-    ) {
-      playingAudios.push('end');
-    }
-    dispatch(setPlayingAudios(playingAudios));
-    const pos = getSquarePosition(move.to);
-    const rookPos = {
-      from: {
-        row: turn === 'w' ? 7 : 0,
-        col: 7,
-      },
-      to: {
-        row: turn === 'w' ? 7 : 0,
-        col: 5,
-      },
-    };
-    let _pieces = pieces.map((piece) => {
-      if (piece.id === pieceIds[0]) {
-        return {
-          ...piece,
-          pos,
-        };
-      } else if (
-        generateSquareName(rookPos.from) === generateSquareName(piece.pos)
-      ) {
-        return {
-          ...piece,
-          pos: rookPos.to,
-        };
-      } else {
-        return piece;
-      }
-    });
-    dispatch(setPieces(_pieces));
-    dispatch(cancel());
-    dispatch(
-      addToHistory({
-        animatingPieceIds: pieceIds,
-        playingAudios,
-        pieces: _pieces,
-        move,
-      })
-    );
-    dispatch(
-      setHighlights({
-        marked: [],
-        prevMoves: [
-          { pos, color: 'blue' },
-          { pos: getSquarePosition(move.from), color: 'blue' },
-        ],
-      })
-    );
-    dispatch(setTurn(game.turn()));
-  };
-
-export const queenSideCastle =
-  (pieceIds: number[], move: Move): AppThunk =>
-  async (dispatch, getState) => {
-    game.move(move);
-    const { pieces, turn } = getState().gameStore;
-    const rookId = getRookId({ row: turn === 'w' ? 7 : 0, col: 7 });
-    dispatch(setAnimatingPieceIds([...pieceIds, rookId]));
-    const playingAudios: AudioType[] = game.inCheck()
-      ? ['moveCheck']
-      : ['castle'];
-    if (
-      game.inCheckmate() ||
-      game.inDraw() ||
-      game.inStalemate() ||
-      game.inThreefoldRepetition() ||
-      game.insufficientMaterial()
-    ) {
-      playingAudios.push('end');
-    }
-    dispatch(setPlayingAudios(playingAudios));
-    const pos = getSquarePosition(move.to);
-    const rookPos = {
-      from: {
-        row: turn === 'w' ? 7 : 0,
-        col: 0,
-      },
-      to: {
-        row: turn === 'w' ? 7 : 0,
-        col: 3,
-      },
-    };
-    let _pieces = pieces.map((piece) => {
-      if (piece.id === pieceIds[0]) {
-        return {
-          ...piece,
-          pos,
-        };
-      } else if (
-        generateSquareName(rookPos.from) === generateSquareName(piece.pos)
-      ) {
-        return {
-          ...piece,
-          pos: rookPos.to,
-        };
-      } else {
-        return piece;
-      }
-    });
-    dispatch(setPieces(_pieces));
-    dispatch(cancel());
-    dispatch(
-      addToHistory({
-        animatingPieceIds: pieceIds,
-        playingAudios,
-        pieces: _pieces,
-        move,
-      })
-    );
-    dispatch(
-      setHighlights({
-        marked: [],
-        prevMoves: [
-          { pos, color: 'blue' },
-          { pos: getSquarePosition(move.from), color: 'blue' },
-        ],
-      })
-    );
-    dispatch(setTurn(game.turn()));
-  };
-
-export const promote =
-  (pieceIds: number[], move: Move, pieceName: PieceSymbol): AppThunk =>
-  (dispatch, getState) => {
-    game.move({
-      ...move,
-      promotion: pieceName,
-    });
-    dispatch(setAnimatingPieceIds(pieceIds));
-    const playingAudios: AudioType[] = game.inCheck()
-      ? ['moveCheck']
-      : ['promote'];
-    if (
-      game.inCheckmate() ||
-      game.inDraw() ||
-      game.inStalemate() ||
-      game.inThreefoldRepetition() ||
-      game.insufficientMaterial()
-    ) {
-      playingAudios.push('end');
-    }
-    dispatch(setPlayingAudios(playingAudios));
-    const { pieces } = getState().gameStore;
-    dispatch(hidePromotionModalBox());
-    const pos = getSquarePosition(move.to);
-    let _pieces = pieces.map((piece) => {
-      if (piece.id === pieceIds[0]) {
-        return {
-          ...piece,
-          pos,
-        };
-      } else {
-        return piece;
-      }
-    });
-    dispatch(setPieces(_pieces));
-    setTimeout(() => {
-      _pieces = _pieces
-        .filter((piece) => {
-          return (
-            generateSquareName(piece.pos) !== move.to ||
-            piece.id === pieceIds[0]
-          );
-        })
-        .map((piece) => {
-          if (piece.id === pieceIds[0]) {
-            return { ...piece, type: pieceName };
-          }
-          return piece;
-        });
-      dispatch(setPieces(_pieces));
-      dispatch(
-        addToHistory({
-          animatingPieceIds: pieceIds,
-          playingAudios,
-          pieces: _pieces,
-          move,
-        })
-      );
-      dispatch(
-        setHighlights({
-          marked: [],
-          prevMoves: [
-            { pos, color: 'blue' },
-            { pos: getSquarePosition(move.from), color: 'blue' },
-          ],
-        })
-      );
-      dispatch(setTurn(game.turn()));
-    }, 200);
-  };
-
-export const showPromotionModalBox =
-  (pieceIds: number[], move: Move): AppThunk =>
-  (dispatch) => {
-    dispatch(setHints([]));
-    dispatch(setPromotionData({ pieceIds, move }));
-  };
-
-export const hidePromotionModalBox = (): AppThunk => (dispatch) => {
-  dispatch(cancel());
-  dispatch(setPromotionData(null));
-};
-
 export const togglePerspective = (): AppThunk => (dispatch, getState) => {
   dispatch(
     setPerspective(getState().gameStore.perspective === 'w' ? 'b' : 'w')
   );
-};
-
-export const getFen = (): string => {
-  return game.fen();
 };
 
 export default gameSlice.reducer;

@@ -1,5 +1,25 @@
 import { Move, Piece as ChessPiece } from 'chess.ts';
 
+export type Provider = 'google' | 'facebook' | 'github';
+
+export interface User extends UserData {
+  email: string | null;
+  phoneNumber: string | null;
+  providerId: string;
+}
+
+export interface AuthState {
+  user: User | null;
+  isLoading: boolean;
+}
+
+export interface UserData {
+  uid: string;
+  rating: number;
+  photoURL: string | null;
+  displayName: string;
+}
+
 export interface Position {
   row: number;
   col: number;
@@ -34,29 +54,41 @@ export type AudioType =
 
 export interface Hint {
   move: Move;
-  pieceIds: number[];
+}
+
+export interface WaitingRoomState {
+  id: string | null;
 }
 
 export interface GameState {
-  id: string | null;
-  roomId: string | null;
-  focusedPieceId: number | null;
+  // Shared
+  id?: string;
   pieces: Piece[];
+  white?: Player | Bot;
+  black?: Player | Bot;
+  // Player specific
+  playerColor?: 'w' | 'b';
+  opponent?: Player | Bot;
+  turn?: 'w' | 'b';
   hints: Hint[];
-  turn: string;
-  highlights: { prevMoves: Highlight[]; marked: Highlight[] };
-  promotionData: null | PromotionData;
-  perspective: 'w' | 'b';
+  // TODO: Replace with an array
+  highlights: Highlight[];
   animatingPieceIds: number[];
   playingAudios: AudioType[];
-  player: 'w' | 'b' | null;
+  promotionData?: PromotionData;
+  perspective: 'w' | 'b';
   isDrawBeingOffered?: boolean;
   ratingSystem?: RatingSystem;
   winner?: string;
-  opponent: UserData | null | Bot;
   result?: GameResult;
   wasDrawDeclined?: boolean;
 }
+
+export interface AnonymousPlayer {
+  displayName: string;
+}
+
+export type Player = UserData | AnonymousPlayer;
 
 export interface History {
   pieces: Piece[];
@@ -68,26 +100,6 @@ export interface History {
 export interface GameHistory {
   currentIndex: number;
   history: History[];
-}
-
-export type Provider = 'google' | 'facebook' | 'github';
-
-export interface User extends UserData {
-  email: string | null;
-  phoneNumber: string | null;
-  providerId: string;
-}
-
-export interface AuthState {
-  user: User | null;
-  isLoading: boolean;
-}
-
-export interface UserData {
-  uid: string;
-  rating: number;
-  photoURL: string | null;
-  displayName: string;
 }
 
 export enum GameDataStatus {
@@ -138,4 +150,22 @@ export enum ModalContentType {
 export interface ModalContentState {
   content: ModalContentType | null;
   backgroundColor: 'light' | 'dark';
+}
+
+export interface BeforeMoveData {
+  move: Move;
+  defaultAudios: AudioType[];
+  extraAnimatingPieceIds?: number[];
+}
+
+export interface BeforeMoveReturnData {
+  currentPiece: Piece;
+  playingAudios: AudioType[];
+}
+
+export interface AfterMoveData {
+  currentPiece: Piece;
+  pieces: Piece[];
+  playingAudios: AudioType[];
+  move: Move;
 }

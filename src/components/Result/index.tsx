@@ -7,7 +7,7 @@ import styles from './index.module.css';
 
 const Result: React.FC = () => {
   const gameResult = useAppSelector((state) => state.gameStore.result!);
-  const { player, id } = useAppSelector((state) => state.gameStore);
+  const { playerColor, id } = useAppSelector((state) => state.gameStore);
   const dispatch = useAppDispatch();
 
   const { status, newRating, oldRating, difference } = gameResult;
@@ -19,11 +19,11 @@ const Result: React.FC = () => {
       diffColorClass = 'text-gray-500';
       break;
     case 'win':
-      result = `${player === 'w' ? 'White' : 'Black'} won`;
+      result = `${playerColor === 'w' ? 'White' : 'Black'} won`;
       diffColorClass = 'text-green-400';
       break;
     case 'lose':
-      result = `${player === 'w' ? 'Black' : 'White'} won`;
+      result = `${playerColor === 'w' ? 'Black' : 'White'} won`;
       diffColorClass = 'text-red-400';
       break;
     case 'aborted':

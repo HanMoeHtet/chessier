@@ -4,7 +4,7 @@ import pieceStyles from '../Piece/index.module.css';
 import { useAppDispatch, useAppSelector } from 'src/store/hooks';
 import { promote, setPromotionData } from 'src/store/gameStore/gameSlice';
 import { PieceSymbol } from 'chess.ts';
-import { getSquarePosition } from 'src/utils/helpers';
+import { getSquarePosition } from 'src/services/game.service';
 
 const PromotionModalBox: React.FC = () => {
   const turn = useAppSelector((state) => state.gameStore.turn);
@@ -15,15 +15,15 @@ const PromotionModalBox: React.FC = () => {
 
   if (!data) return null;
 
-  const { pieceIds, move } = data;
+  const { move } = data;
   const pos = getSquarePosition(move.to);
 
   const onPieceClicked = (pieceName: PieceSymbol) => {
-    dispatch(promote(pieceIds, move, pieceName));
+    dispatch(promote(move, pieceName));
   };
 
   const onCloseButtonClicked = () => {
-    dispatch(setPromotionData(null));
+    dispatch(setPromotionData(undefined));
   };
 
   return (

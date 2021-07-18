@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { useAppDispatch, useAppSelector } from 'src/store/hooks';
-import { generateSquareName, getSquarePosOnBoard } from 'src/utils/helpers';
+import { getSquareName } from 'src/services/game.service';
 import Hint from '../Hint';
 import Piece from 'src/components/Piece';
 import styles from './index.module.css';
@@ -42,11 +42,8 @@ const Board: React.FC = () => {
   };
 
   const renderHighlights = () => {
-    const _highlights = Object.values(highlights).reduce((prev, cur) => {
-      return [...prev, ...cur];
-    }, []);
-    return _highlights.map((highlight) => {
-      const key = generateSquareName(highlight.pos) + highlight.color;
+    return highlights.map((highlight) => {
+      const key = getSquareName(highlight.pos) + highlight.color;
       return <Highlight key={key} {...highlight} />;
     });
   };
@@ -54,14 +51,14 @@ const Board: React.FC = () => {
   // FIXME: fix highlight for perspective chage
   const onBoardRightClicked: React.MouseEventHandler<HTMLDivElement> = (e) => {
     e.preventDefault();
-    const { x, y } = e.currentTarget.getBoundingClientRect();
-    const boardPos = { x, y };
+    // const { x, y } = e.currentTarget.getBoundingClientRect();
+    // const boardPos = { x, y };
 
-    const { clientX, clientY } = e;
-    const mousePos = { x: clientX, y: clientY };
+    // const { clientX, clientY } = e;
+    // const mousePos = { x: clientX, y: clientY };
 
-    const squarePos = getSquarePosOnBoard(boardPos, mousePos);
-    dispatch(mark('red', squarePos));
+    // const squarePos = getSquarePosOnBoard(boardPos, mousePos);
+    // dispatch(mark('red', squarePos));
   };
 
   return (

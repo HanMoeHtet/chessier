@@ -2,18 +2,18 @@ import React from 'react';
 import { makeMove } from 'src/store/gameStore/gameSlice';
 import { useAppDispatch } from 'src/store/hooks';
 import { Hint as HintType } from 'src/types';
-import { getSquarePosition } from 'src/utils/helpers';
+import { getSquarePosition } from 'src/services/game.service';
 import styles from './index.module.css';
 
 interface Props extends HintType {}
 
-const Hint: React.FC<Props> = ({ move, pieceIds }) => {
+const Hint: React.FC<Props> = ({ move }) => {
   const pos = getSquarePosition(move.to);
 
   const dispatch = useAppDispatch();
 
   const handleClick = () => {
-    dispatch(makeMove(pieceIds, move));
+    dispatch(makeMove(move));
   };
 
   return (

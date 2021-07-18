@@ -5,18 +5,19 @@ import GameInfo from 'src/components/GameInfo';
 import Settings from 'src/components/Settings';
 import Logo from 'src/components/utils/Logo';
 import { findBestMove, watch } from 'src/services/stockfish.service';
-import { getFen, makeBotMove } from 'src/store/gameStore/gameSlice';
+import { makeBotMove } from 'src/store/gameStore/gameSlice';
 import { useAppDispatch, useAppSelector } from 'src/store/hooks';
 import { PieceSymbol } from 'chess.ts';
 import { ModalContentType } from 'src/types';
 import MobileView from './MobileView';
 import { setModalContent } from 'src/store/modalContent/modalContentSlice';
 import styles from './index.module.css';
+import { getFen } from 'src/services/game.service';
 
 const Game: React.FC = () => {
   const dispatch = useAppDispatch();
 
-  const { result, id, turn, opponent, player } = useAppSelector(
+  const { result, id, turn, opponent, playerColor } = useAppSelector(
     (state) => state.gameStore
   );
 
@@ -31,15 +32,17 @@ const Game: React.FC = () => {
       const unsubscribe = watch((message) => {
         if (message.includes('bestmove')) {
           const _message = message.split(' ')[1];
-          const from = _message.slice(0, 2);
-          const to = _message.slice(2, 4);
-          const promotion = _message.slice(4, 5) as PieceSymbol;
-          const move = {
-            to,
-            from,
-            promotion,
-          };
-          dispatch(makeBotMove(move));
+          if (_message) {
+            const from = _message.slice(0, 2);
+            const to = _message.slice(2, 4);
+            const promotion = _message.slice(4, 5) as PieceSymbol;
+            const move = {
+              to,
+              from,
+              promotion,
+            };
+            dispatch(makeBotMove(move));
+          }
         }
       });
       return () => unsubscribe();
@@ -47,7 +50,12 @@ const Game: React.FC = () => {
   }, [id, dispatch]);
 
   useEffect(() => {
-    if (!result && id === 'bot' && turn !== player && 'level' in opponent!) {
+    if (
+      !result &&
+      id === 'bot' &&
+      turn !== playerColor &&
+      'level' in opponent!
+    ) {
       let depth;
       switch (opponent.level) {
         case 'easy':
@@ -64,7 +72,7 @@ const Game: React.FC = () => {
       }
       findBestMove(getFen(), depth);
     }
-  }, [id, turn, opponent, player, result]);
+  }, [id, turn, opponent, playerColor, result]);
 
   return (
     <>

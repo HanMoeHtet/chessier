@@ -10,7 +10,7 @@ import styles from './index.module.css';
 interface Props extends PieceType {}
 
 const Piece: React.FC<Props> = ({ type, color, id, pos }) => {
-  const { focusedPieceId, animatingPieceIds, perspective } = useAppSelector(
+  const { animatingPieceIds, perspective } = useAppSelector(
     (state) => state.gameStore
   );
 
@@ -18,11 +18,7 @@ const Piece: React.FC<Props> = ({ type, color, id, pos }) => {
 
   const onPieceClicked: React.MouseEventHandler<HTMLDivElement> = (e) => {
     e.preventDefault();
-    if (focusedPieceId === id) {
-      dispatch(cancel());
-    } else {
-      dispatch(focus(id, pos));
-    }
+    dispatch(focus(id));
   };
 
   const handleTransitionEnd = () => {

@@ -1,15 +1,19 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { AudioType, GameHistory, History, Piece } from 'src/types';
+import { AudioType, GameHistory, Highlight, History, Piece } from 'src/types';
 import { AppThunk } from '..';
 import {
   setAnimatingPieceIds,
   setHighlights,
   setPieces,
   setPlayingAudios,
-  game,
 } from '../gameStore/gameSlice';
-import { getInitialPieces, getSquarePosition } from 'src/utils/helpers';
 import { Move } from 'chess.ts';
+import {
+  getInitialPieces,
+  getSquarePosition,
+  makeMove,
+  undo,
+} from 'src/services/game.service';
 
 const initialState: GameHistory = {
   currentIndex: 0,
@@ -63,57 +67,50 @@ export const addToHistory: (history: History) => AppThunk =
 
 export const back = (): AppThunk => (dispatch, getState) => {
   const { history, currentIndex } = getState().historyStore;
-  if (currentIndex === 0) return;
-  const { pieces: prevPieces, move } = history[currentIndex - 1];
-  const { animatingPieceIds, playingAudios } = history[currentIndex];
-  game.undo();
+  const prevState = history[currentIndex - 1];
+  if (!prevState) return;
+  const { pieces: prevPieces, move } = prevState;
+  const currentState = history[currentIndex];
+  if (!currentState) throw Error('An error ocurred.');
+  const { animatingPieceIds, playingAudios } = currentState;
+  undo();
   dispatch(setPieces(prevPieces));
   dispatch(setAnimatingPieceIds(animatingPieceIds));
   dispatch(setPlayingAudios(playingAudios));
   dispatch(setCurrentIndex(currentIndex - 1));
   if (!move) {
-    dispatch(
-      setHighlights({
-        marked: [],
-        prevMoves: [],
-      })
-    );
+    dispatch(setHighlights([]));
   } else {
     dispatch(
-      setHighlights({
-        marked: [],
-        prevMoves: [
-          { pos: getSquarePosition(move.to), color: 'blue' },
-          { pos: getSquarePosition(move.from), color: 'blue' },
-        ],
-      })
+      setHighlights([
+        { pos: getSquarePosition(move.to), color: 'blue' },
+        { pos: getSquarePosition(move.from), color: 'blue' },
+      ])
     );
   }
 };
 
 export const next = (): AppThunk => (dispatch, getState) => {
   const { history, currentIndex } = getState().historyStore;
-  if (currentIndex === history.length - 1) return;
+  const nextState = history[currentIndex + 1];
+  if (!nextState) return false;
   const {
     pieces: nextPieces,
     move,
     animatingPieceIds,
     playingAudios,
-  } = history[currentIndex + 1];
+  } = nextState;
   if (!move) return;
-  game.move(move);
+  makeMove(move);
   dispatch(setPieces(nextPieces));
   dispatch(setAnimatingPieceIds(animatingPieceIds));
   dispatch(setPlayingAudios(playingAudios));
   dispatch(setCurrentIndex(currentIndex + 1));
   dispatch(
-    setHighlights({
-      marked: [],
-      prevMoves: [
-        { pos: getSquarePosition(move.to), color: 'blue' },
-        { pos: getSquarePosition(move.from), color: 'blue' },
-      ],
-    })
+    setHighlights([
+      { pos: getSquarePosition(move.to), color: 'blue' },
+      { pos: getSquarePosition(move.from), color: 'blue' },
+    ])
   );
 };
 
@@ -121,20 +118,19 @@ export const goto =
   (index: number): AppThunk =>
   (dispatch, getState) => {
     const { history } = getState().historyStore;
-    const { pieces, move, animatingPieceIds, playingAudios } = history[index];
+    const state = history[index];
+    if (!state) return;
+    const { pieces, move, animatingPieceIds, playingAudios } = state;
     if (!move) return;
     dispatch(setPieces(pieces));
     dispatch(setAnimatingPieceIds(animatingPieceIds));
     dispatch(setPlayingAudios(playingAudios));
     dispatch(setCurrentIndex(index));
     dispatch(
-      setHighlights({
-        marked: [],
-        prevMoves: [
-          { pos: getSquarePosition(move.to), color: 'blue' },
-          { pos: getSquarePosition(move.from), color: 'blue' },
-        ],
-      })
+      setHighlights([
+        { pos: getSquarePosition(move.to), color: 'blue' },
+        { pos: getSquarePosition(move.from), color: 'blue' },
+      ])
     );
   };
 
@@ -145,5 +141,23 @@ export const firstMove = (): AppThunk => (dispatch) => {
 export const lastMove = (): AppThunk => (dispatch, getState) => {
   dispatch(goto(getState().historyStore.history.length - 1));
 };
+
+export const getPrevMove =
+  (): AppThunk<Move | null> => (dispatch, getState) => {
+    const { currentIndex, history } = getState().historyStore;
+    let state;
+    if (!(state = history[currentIndex - 1])) return null;
+    return state.move;
+  };
+
+export const getPrevMoveHighlights =
+  (): AppThunk<Highlight[]> => (dispatch) => {
+    const move = dispatch(getPrevMove());
+    if (!move) return [];
+    return [
+      { color: 'blue', pos: getSquarePosition(move.from) },
+      { color: 'blue', pos: getSquarePosition(move.to) },
+    ];
+  };
 
 export default historySlice.reducer;

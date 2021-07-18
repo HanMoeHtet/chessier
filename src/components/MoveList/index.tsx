@@ -27,7 +27,7 @@ const MoveList: React.FC = () => {
     for (let i = 1, n = 1; i < history.length; i += 2, n++) {
       let row = (
         <tr key={n}>
-          {history[i].move && (
+          {history[i]?.move && (
             <>
               <td className={styles.number}>{n}.</td>
               <td
@@ -36,7 +36,7 @@ const MoveList: React.FC = () => {
                 }`}
                 onClick={() => handleClick(i)}
               >
-                {history[i].move?.san}
+                {history[i]?.move?.san}
               </td>
             </>
           )}

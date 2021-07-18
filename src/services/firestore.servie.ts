@@ -1,5 +1,4 @@
 import app from 'src/services/firebase.service';
-import firebase from 'firebase/app';
 import { GameDataStatus } from 'src/types';
 
 const db = app.firestore();
@@ -99,7 +98,7 @@ export const updateGame = async (id: string, data: any) => {
 };
 
 export const addGameMove = async (id: string, state: any) => {
-  const docRef = await db.collection('games').doc(id);
+  const docRef = db.collection('games').doc(id);
   const data = (await docRef.get()).data();
   if (data) {
     const history = data.history as [];

@@ -1,5 +1,5 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { Move, PartialMove, PieceSymbol } from 'chess.ts';
+import { Move, PartialMove } from 'chess.ts';
 import {
   createNewGame,
   getInitialPieces,
@@ -417,9 +417,6 @@ export const cancel = (): AppThunk => (dispatch) => {
   dispatch(setHighlights(prevMoveHighlights));
 };
 
-/**
- * TODO: Skip modal dialog box for bot's move
- */
 export const makeBotMove =
   (move: PartialMove): AppThunk =>
   (dispatch, getState) => {
@@ -450,7 +447,6 @@ export const makeMove =
     }
   };
 
-// FIXME: Fix promotion process
 export const _makeMove =
   (gameMove: Move): AppThunk =>
   (dispatch) => {

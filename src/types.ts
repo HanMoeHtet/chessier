@@ -71,7 +71,6 @@ export interface GameState {
   opponent?: Player | Bot;
   turn?: 'w' | 'b';
   hints: Hint[];
-  // TODO: Replace with an array
   highlights: Highlight[];
   animatingPieceIds: number[];
   playingAudios: AudioType[];

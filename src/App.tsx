@@ -1,19 +1,23 @@
-import { BrowserRouter, Switch, Route } from 'react-router-dom';
+import { Switch, Route } from 'react-router-dom';
 import AppModal from './components/AppModal';
+import Page from './components/Page';
 import Authenticated from './guards/Authenticated';
 import Guest from './guards/Guest';
 import PlayingGame from './guards/PlayingGame';
-import Game from './pages/Game';
-import Home from './pages/Home';
-import LandingPage from './pages/LandingPage';
-import Login from './pages/Login';
 
 function App() {
   return (
-    <BrowserRouter>
+    <>
       <Switch>
         <Route path="/" exact>
-          <LandingPage />
+          {/* <LandingPage /> */}
+          <Page
+            loadComponent={() =>
+              import(
+                /* webpackChunkName: 'LandingPage' */ 'src/pages/LandingPage'
+              )
+            }
+          />
         </Route>
         <Route path="/about" exact>
           <p>Chessier about</p>
@@ -26,25 +30,35 @@ function App() {
         </Route>
         <Route path="/login" exact>
           <Guest>
-            <Login />
+            {/* <Login /> */}
+            <Page
+              loadComponent={() =>
+                import(/* webpackChunkName: 'Login' */ './pages/Login')
+              }
+            />
           </Guest>
         </Route>
         <Route path="/home" exact>
           <Authenticated>
-            <Home />
+            {/* <Home /> */}
+            <Page
+              loadComponent={() =>
+                import(/* webpackChunkName: 'Home' */ './pages/Home')
+              }
+            />
           </Authenticated>
         </Route>
         <Route path="/play/online" exact>
           <Authenticated>
             <PlayingGame>
-              <Game />
+              <Page loadComponent={() => import('src/pages/Game')} />
             </PlayingGame>
           </Authenticated>
         </Route>
         <Route path="/play/computer" exact>
           <Authenticated>
             <PlayingGame>
-              <Game />
+              <Page loadComponent={() => import('src/pages/Game')} />
             </PlayingGame>
           </Authenticated>
         </Route>
@@ -53,7 +67,7 @@ function App() {
         </Route>
       </Switch>
       <AppModal />
-    </BrowserRouter>
+    </>
   );
 }
 

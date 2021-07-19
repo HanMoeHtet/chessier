@@ -62,6 +62,7 @@ const Footer: React.FC = () => {
                   backgroundColor="currentColor"
                   color="#1f2937"
                   activeColor="white"
+                  activeBackgroundColor="blue"
                 />
               </a>
             </div>

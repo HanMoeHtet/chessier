@@ -1,73 +1,97 @@
-import { Switch, Route } from 'react-router-dom';
+import { Switch, Route, BrowserRouter } from 'react-router-dom';
 import AppModal from './components/AppModal';
 import Page from './components/Page';
 import Authenticated from './guards/Authenticated';
 import Guest from './guards/Guest';
 import PlayingGame from './guards/PlayingGame';
+import 'tippy.js/dist/tippy.css';
+import Offline from './guards/Offline';
+import ConnectionProvider from './composables/ConnectionProvider';
 
 function App() {
   return (
-    <>
-      <Switch>
-        <Route path="/" exact>
-          {/* <LandingPage /> */}
-          <Page
-            loadComponent={() =>
-              import(
-                /* webpackChunkName: 'LandingPage' */ 'src/pages/LandingPage'
-              )
-            }
-          />
-        </Route>
-        <Route path="/about" exact>
-          <p>Chessier about</p>
-        </Route>
-        <Route path="/terms" exact>
-          <p>Chessier terms</p>
-        </Route>
-        <Route path="/policies" exact>
-          <p>Chessier policies</p>
-        </Route>
-        <Route path="/login" exact>
-          <Guest>
-            {/* <Login /> */}
+    <BrowserRouter>
+      <ConnectionProvider>
+        <Switch>
+          <Route path="/" exact>
             <Page
               loadComponent={() =>
-                import(/* webpackChunkName: 'Login' */ './pages/Login')
+                import(
+                  /* webpackChunkName: 'LandingPage' */ 'src/pages/LandingPage'
+                )
               }
             />
-          </Guest>
-        </Route>
-        <Route path="/home" exact>
-          <Authenticated>
-            {/* <Home /> */}
+          </Route>
+          <Route path="/about" exact>
+            <Page
+              loadComponent={() =>
+                import(/* webpackChunkName: 'About' */ 'src/pages/About')
+              }
+            />
+          </Route>
+          <Route path="/terms" exact>
+            <Page
+              loadComponent={() =>
+                import(/* webpackChunkName: 'TOS' */ 'src/pages/TOS')
+              }
+            />
+          </Route>
+          <Route path="/policies" exact>
+            <Page
+              loadComponent={() =>
+                import(
+                  /* webpackChunkName: 'Policies' */ 'src/pages/PrivacyPolicies'
+                )
+              }
+            />
+          </Route>
+          <Route path="/login" exact>
+            <Offline redirectTo="/">
+              <Guest>
+                <Page
+                  loadComponent={() =>
+                    import(/* webpackChunkName: 'Login' */ './pages/Login')
+                  }
+                />
+              </Guest>
+            </Offline>
+          </Route>
+          <Route path="/home" exact>
             <Page
               loadComponent={() =>
                 import(/* webpackChunkName: 'Home' */ './pages/Home')
               }
             />
-          </Authenticated>
-        </Route>
-        <Route path="/play/online" exact>
-          <Authenticated>
+          </Route>
+          <Route path="/play/online" exact>
+            <Offline redirectTo="/">
+              <Authenticated>
+                <PlayingGame>
+                  <Page
+                    loadComponent={() =>
+                      import(/* webpackChunkName: 'Game' */ './pages/Game')
+                    }
+                  />
+                </PlayingGame>
+              </Authenticated>
+            </Offline>
+          </Route>
+          <Route path="/play/computer" exact>
             <PlayingGame>
-              <Page loadComponent={() => import('src/pages/Game')} />
+              <Page
+                loadComponent={() =>
+                  import(/* webpackChunkName: 'Game' */ './pages/Game')
+                }
+              />
             </PlayingGame>
-          </Authenticated>
-        </Route>
-        <Route path="/play/computer" exact>
-          <Authenticated>
-            <PlayingGame>
-              <Page loadComponent={() => import('src/pages/Game')} />
-            </PlayingGame>
-          </Authenticated>
-        </Route>
-        <Route path="/*">
-          <div>404 not found</div>
-        </Route>
-      </Switch>
-      <AppModal />
-    </>
+          </Route>
+          <Route path="/*">
+            <div>404 not found</div>
+          </Route>
+        </Switch>
+        <AppModal />
+      </ConnectionProvider>
+    </BrowserRouter>
   );
 }
 

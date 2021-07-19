@@ -21,10 +21,7 @@ const SettingButtons: React.FC = () => {
     <div className="flex justify-center items-center my-5">
       <div className="px-3">
         <Tippy content="Flip the Board">
-          <button
-            onClick={() => dispatch(togglePerspective())}
-            onTouchStart={() => console.log('touched')}
-          >
+          <button onClick={() => dispatch(togglePerspective())}>
             <FlipIcon
               color="rgba(107, 114, 128, var(--tw-bg-opacity))"
               width="25px"

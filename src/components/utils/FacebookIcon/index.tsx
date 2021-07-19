@@ -17,12 +17,18 @@ const FacebookIcon: React.FC<Props> = ({
     <svg
       viewBox="0 0 36 36"
       className="a8c37x1j ms05siws hwsy1cff b7h9ocf4"
-      fill={backgroundColor || 'url(#jsc_s_3)'}
+      fill={backgroundColor || '#0d89f0'}
       height={width}
       width={width}
     >
       <defs>
-        <linearGradient x1="50%" x2="50%" y1="97.0782153%" y2="0%" id="jsc_s_3">
+        <linearGradient
+          x1="50%"
+          x2="50%"
+          y1="97.0782153%"
+          y2="0%"
+          id="gradient1"
+        >
           <stop offset="0%" stopColor="#0062E0"></stop>
           <stop offset="100%" stopColor="#19AFFF"></stop>
         </linearGradient>

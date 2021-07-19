@@ -1,6 +1,5 @@
 import React from 'react';
 import Divider from '../utils/Divider';
-import 'tippy.js/dist/tippy.css';
 import MoveList from '../MoveList';
 import SettingButtons from '../SettingButtons';
 

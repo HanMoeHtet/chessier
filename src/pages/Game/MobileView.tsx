@@ -13,17 +13,12 @@ import styles from './index.module.css';
 const MobileView: React.FC = () => {
   const [isShowingDrawer, setIsShowingDrawer] = useState(false);
 
-  const { playerColor, perspective } = useAppSelector(
+  const { white, black, perspective } = useAppSelector(
     (state) => state.gameStore
   );
-  const user = useAppSelector((state) => state.authStore.user!);
-  const opponent = useAppSelector((state) => state.gameStore.opponent!);
 
-  const white = playerColor === 'w' ? user : opponent;
-  const black = playerColor === 'w' ? opponent : user;
-
-  let top = black;
-  let bottom = white;
+  let top = black!;
+  let bottom = white!;
 
   if (perspective === 'b') {
     [bottom, top] = [top, bottom];

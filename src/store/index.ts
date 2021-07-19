@@ -13,6 +13,7 @@ export const store = configureStore({
     modalContentStore: modalContentReducer,
     waitingRoomStore: waitingRoomReducer,
   },
+  devTools: process.env.NODE_ENV !== 'production',
 });
 
 export type AppStore = typeof store;

@@ -23,12 +23,13 @@ const PrivacyPolicies: React.FC = () => {
           Welcome to <b> Chessier</b>.
         </p>
         <p>
-          <b>Chessier</b> (“us”, “we”, or “our”) operates <b>chessier.com</b>{' '}
-          (hereinafter referred to as <b>“Service”</b>).
+          <b>Chessier</b> (“us”, “we”, or “our”) operates{' '}
+          <b>chessier.netlify.app</b> (hereinafter referred to as{' '}
+          <b>“Service”</b>).
         </p>
         <p>
-          Our Privacy Policy governs your visit to <b>chessier.com</b>, and
-          explains how we collect, safeguard and disclose information that
+          Our Privacy Policy governs your visit to <b>chessier.netlify.app</b>,
+          and explains how we collect, safeguard and disclose information that
           results from your use of our Service.
         </p>
         <p>
@@ -47,7 +48,8 @@ const PrivacyPolicies: React.FC = () => {
           2. <b>Definitions</b>
         </p>
         <p>
-          <b>SERVICE</b> means the chessier.com website operated by Chessier.
+          <b>SERVICE</b> means the chessier.netlify.app website operated by
+          Chessier.
         </p>
         <p>
           <b>PERSONAL DATA</b> means data about a living individual who can be
@@ -649,7 +651,7 @@ const PrivacyPolicies: React.FC = () => {
         <p style={{ marginTop: '5em', fontSize: '0.7em' }}>
           This{' '}
           <a href="https://policymaker.io/privacy-policy/">Privacy Policy</a>
-          was created for <b>chessier.com</b> by{' '}
+          was created for <b>chessier.netlify.app</b> by{' '}
           <a href="https://policymaker.io">PolicyMaker.io</a> on 2021-07-19.
         </p>
       </div>

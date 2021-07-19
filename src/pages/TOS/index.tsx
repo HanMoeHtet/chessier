@@ -24,7 +24,7 @@ const TOS: React.FC = () => {
         </p>
         <p>
           These Terms of Service (“Terms”, “Terms of Service”) govern your use
-          of our website located at <b>chessier.com</b>
+          of our website located at <b>chessier.netlify.app</b>
           (together or individually “Service”) operated by <b>Chessier</b>.
         </p>
         <p>
@@ -493,7 +493,7 @@ const TOS: React.FC = () => {
           <a href="https://policymaker.io/terms-and-conditions/">
             Terms of Service
           </a>{' '}
-          were created for <b>chessier.com</b> by{' '}
+          were created for <b>chessier.netlify.app</b> by{' '}
           <a href="https://policymaker.io">PolicyMaker.io</a> on 2021-07-19.
         </p>
       </div>

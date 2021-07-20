@@ -11,7 +11,7 @@ const About: React.FC = () => {
           <Logo width="150px" />
         </Link>
       </div>
-      <div className="container mx-auto py-10">
+      <div className="container mx-auto py-10 px-6">
         <h2 style={{ textAlign: 'center' }}>
           <b>About</b>
         </h2>

@@ -4,4 +4,5 @@ module.exports = {
   ignoreURLParametersMatching: [/^utm_/, /^fbclid$/],
   swDest: 'build/sw.js',
   cleanupOutdatedCaches: true,
+  maximumFileSizeToCacheInBytes: 4850000,
 };
